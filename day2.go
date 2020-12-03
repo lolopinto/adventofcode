@@ -2,7 +2,6 @@ package main
 
 // https://adventofcode.com/2020/day/2#part2
 import (
-	"io/ioutil"
 	"log"
 	"strconv"
 	"strings"
@@ -64,13 +63,7 @@ func parsePolicy(line string) policy {
 }
 
 func day2() {
-	b, err := ioutil.ReadFile("day2input")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	str := string(b)
-	lines := strings.Split(str, "\n")
+	lines := readFile("day2input")
 
 	validPassword := 0
 	for _, line := range lines {

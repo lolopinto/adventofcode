@@ -2,21 +2,13 @@ package main
 
 // https://adventofcode.com/2020/day/1
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 )
 
 func day1() {
-	b, err := ioutil.ReadFile("day1input")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	str := string(b)
-	lines := strings.Split(str, "\n")
+	lines := readFile("day1input")
 	m := make(map[int]bool)
 	for _, line := range lines {
 		i, err := strconv.Atoi(line)
