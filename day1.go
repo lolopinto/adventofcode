@@ -25,15 +25,17 @@ func day1() {
 		m[i] = true
 	}
 
-	for key := range m {
-		val := 2020 - key
+	for num := range m {
+		target := 2020 - num
+		for num2 := range m {
+			target2 := target - num2
 
-		if !m[val] {
-			continue
+			if m[target2] {
+				log.Println(num, num2, target2)
+				log.Println(num * num2 * target2)
+				os.Exit(1)
+			}
 		}
-
-		log.Println(key * val)
-		os.Exit(1)
 	}
 
 }
