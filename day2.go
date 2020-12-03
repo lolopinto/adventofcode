@@ -1,5 +1,6 @@
 package main
 
+// https://adventofcode.com/2020/day/2#part2
 import (
 	"io/ioutil"
 	"log"
@@ -8,20 +9,24 @@ import (
 )
 
 type policy struct {
-	minOccurence int
-	maxOccurence int
-	letter       rune
-	password     string
+	firstPos  int
+	secondPos int
+	letter    rune
+	password  string
 }
 
 func (p policy) validPassword() bool {
 	count := 0
-	for _, c := range p.password {
+	for i, c := range p.password {
+		// there's a more efficient way of doing this but just easier to do it this way
+		if i+1 != p.firstPos && i+1 != p.secondPos {
+			continue
+		}
 		if p.letter == c {
 			count++
 		}
 	}
-	return count >= p.minOccurence && count <= p.maxOccurence
+	return count == 1
 }
 
 func parsePolicy(line string) policy {
@@ -33,8 +38,8 @@ func parsePolicy(line string) policy {
 	if len(numParts) != 2 {
 		log.Fatalf("invalid range %s", parts[0])
 	}
-	minOccurence, err := strconv.Atoi(numParts[0])
-	maxOccurence, err2 := strconv.Atoi(numParts[1])
+	firstPos, err := strconv.Atoi(numParts[0])
+	secondPos, err2 := strconv.Atoi(numParts[1])
 
 	if err != nil {
 		log.Fatal(err)
@@ -50,10 +55,10 @@ func parsePolicy(line string) policy {
 	}
 
 	return policy{
-		minOccurence: minOccurence,
-		maxOccurence: maxOccurence,
-		letter:       letter,
-		password:     parts[2],
+		firstPos:  firstPos,
+		secondPos: secondPos,
+		letter:    letter,
+		password:  parts[2],
 	}
 
 }
