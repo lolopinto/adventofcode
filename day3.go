@@ -15,58 +15,82 @@ const tree = '#'
 type topoMap struct {
 	lines      []string
 	currentPos point
-	treesSeen  int
 	width      int
 }
 
-func (tm *topoMap) advance() bool {
-	newPos := point{
-		x: tm.currentPos.x + 3,
-		y: tm.currentPos.y + 1,
-	}
+func (tm *topoMap) countTrees(pathRight, pathDown int) int {
+	count := 0
 
-	// it repeats to the right so let's just use that to compare
-	xComp := newPos.x
-
-	if newPos.x > tm.width {
-		xComp = newPos.x % tm.width
-	}
-
-	if newPos.y >= len(tm.lines) {
-		return false
-	}
-
-	line := tm.lines[newPos.y]
-	for i, c := range line {
-		if i != xComp {
-			continue
+	for tm.currentPos.y < len(tm.lines) {
+		tm.currentPos.x += pathRight
+		tm.currentPos.y += pathDown
+		if tm.currentPos.y >= len(tm.lines) {
+			break
 		}
-		if c == tree {
-			tm.treesSeen++
+
+		// it repeats to the right so let's just use that to compare
+		xComp := tm.currentPos.x % tm.width
+		line := tm.lines[tm.currentPos.y]
+		for i, c := range line {
+			if i != xComp {
+				continue
+			}
+			if c == tree {
+				count++
+			}
 		}
 	}
+	return count
+}
 
-	tm.currentPos = newPos
-
-	if newPos.y >= len(tm.lines) && newPos.x >= len(tm.lines[0]) {
-		return false
-	}
-	return true
+type iteration struct {
+	pathRight int
+	pathDown  int
 }
 
 func day3() {
 	lines := readFile("day3input")
 
-	tm := &topoMap{
-		lines:      lines,
-		currentPos: point{},
-		width:      len(lines[0]),
+	var multiple int64
+	multiple = 1
+	iterations := []iteration{
+		{
+			pathRight: 1,
+			pathDown:  1,
+		},
+		{
+			pathRight: 3,
+			pathDown:  1,
+		},
+		{
+			pathRight: 5,
+			pathDown:  1,
+		},
+		{
+			pathRight: 7,
+			pathDown:  1,
+		},
+		{
+			pathRight: 1,
+			pathDown:  2,
+		},
 	}
 
-	for {
-		if !tm.advance() {
-			break
+	for _, iteration := range iterations {
+		tm := &topoMap{
+			lines:      lines,
+			currentPos: point{},
+			width:      len(lines[0]),
 		}
+		count := tm.countTrees(iteration.pathRight, iteration.pathDown)
+		log.Println(count)
+
+		// 4953812864 wrong number
+		// 5007658656 correct answer
+		// 93, 164, 82, 91, 44 for each iteration
+		// had 92 in previous way of doing this...
+		multiple = multiple * int64(count)
 	}
-	log.Println(tm.treesSeen)
+
+	log.Println(multiple)
 }
