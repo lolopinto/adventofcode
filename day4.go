@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 type passport struct {
@@ -16,15 +18,132 @@ type passport struct {
 	cid string
 }
 
-var mKeys = map[string]bool{
-	"byr": true,
-	"iyr": true,
-	"eyr": true,
-	"hgt": true,
-	"hcl": true,
-	"ecl": true,
-	"pid": true,
-	"cid": false,
+type info interface {
+	required() bool
+	valid(str string) bool
+}
+
+type requiredInfo struct{}
+
+func (i requiredInfo) required() bool {
+	return true
+}
+
+func validRange(str string, min, max int) bool {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		return false
+	}
+	return i >= min && i <= max
+}
+
+type byr struct {
+	requiredInfo
+}
+
+func (b *byr) valid(str string) bool {
+	return validRange(str, 1920, 2002)
+}
+
+type iyr struct {
+	requiredInfo
+}
+
+func (b *iyr) valid(str string) bool {
+	return validRange(str, 2010, 2020)
+}
+
+type eyr struct {
+	requiredInfo
+}
+
+func (b *eyr) valid(str string) bool {
+	return validRange(str, 2020, 2030)
+}
+
+type hgt struct {
+	requiredInfo
+}
+
+func (b *hgt) valid(str string) bool {
+	if strings.HasSuffix(str, "cm") {
+		return validRange(strings.TrimSuffix(str, "cm"), 150, 193)
+	} else if strings.HasSuffix(str, "in") {
+		return validRange(strings.TrimSuffix(str, "in"), 59, 76)
+	}
+	return false
+}
+
+type hcl struct {
+	requiredInfo
+}
+
+func (b *hcl) valid(str string) bool {
+	if len(str) != 7 {
+		return false
+	}
+	for i, c := range str {
+		if i == 0 {
+			if c != '#' {
+				return false
+			}
+		} else {
+			if !unicode.IsDigit(c) && !unicode.IsLower(c) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+type ecl struct {
+	requiredInfo
+}
+
+func (b *ecl) valid(str string) bool {
+	switch str {
+	case "amb", "blu", "brn", "gry", "grn", "hzl", "oth":
+		return true
+	default:
+		return false
+	}
+}
+
+type pid struct {
+	requiredInfo
+}
+
+func (b *pid) valid(str string) bool {
+	if len(str) != 9 {
+		return false
+	}
+	for _, c := range str {
+		if !unicode.IsDigit(c) {
+			return false
+		}
+	}
+	return true
+}
+
+type cid struct{}
+
+func (b *cid) required() bool {
+	return false
+}
+
+func (b *cid) valid(str string) bool {
+	return true
+}
+
+var mKeys = map[string]info{
+	"byr": &byr{},
+	"iyr": &iyr{},
+	"eyr": &eyr{},
+	"hgt": &hgt{},
+	"hcl": &hcl{},
+	"ecl": &ecl{},
+	"pid": &pid{},
+	"cid": &cid{},
 }
 
 func day4() {
@@ -34,9 +153,9 @@ func day4() {
 	numValid := 0
 
 	checkValid := func() {
-		for k, v := range mKeys {
-			_, ok := data[k]
-			if v && !ok {
+		for k, infoInstance := range mKeys {
+			val, ok := data[k]
+			if infoInstance.required() && (!ok || !infoInstance.valid(val)) {
 				data = make(map[string]string)
 				return
 			}
