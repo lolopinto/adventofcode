@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"sort"
 )
 
 type boardingPass struct {
@@ -53,13 +54,24 @@ func parseBoardingPass(line string) boardingPass {
 
 func day5() {
 	lines := readFile("day5input")
-	max := 0
-	for _, line := range lines {
+
+	sorted := make([]int, len(lines))
+	for idx, line := range lines {
 		bp := parseBoardingPass(line)
 		id := bp.seatID()
-		if id > max {
-			max = id
+		sorted[idx] = id
+	}
+	sort.Ints(sorted)
+
+	last := sorted[0]
+	for i := range sorted {
+		last = sorted[i]
+		if i == 0 || i+1 == len(sorted) {
+			continue
+		}
+		if sorted[i+1] != last+1 {
+			log.Println(last + 1)
 		}
 	}
-	log.Println(max)
+	//	log.Println(sorted)
 }
