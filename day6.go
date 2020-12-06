@@ -1,12 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type group struct {
-	m map[rune]int
+	m     map[rune]int
+	lines []string
 }
 
-func (g group) processLine(line string) {
+func (g *group) processLine(line string) {
+	g.lines = append(g.lines, line)
 	for _, c := range line {
 		val, ok := g.m[c]
 		if ok {
@@ -15,6 +19,16 @@ func (g group) processLine(line string) {
 			g.m[c] = 1
 		}
 	}
+}
+
+func (g *group) processCount() int {
+	count := 0
+	for _, v := range g.m {
+		if v == len(g.lines) {
+			count++
+		}
+	}
+	return count
 }
 
 func initGroup() group {
@@ -31,9 +45,8 @@ func day6() {
 	g := initGroup()
 
 	endGroup := func() {
-		sum += len(g.m)
+		sum += g.processCount()
 		groups = append(groups, g)
-		//		fmt.Println(len(g.m))
 		g = initGroup()
 	}
 	for _, line := range lines {
