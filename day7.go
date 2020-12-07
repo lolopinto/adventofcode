@@ -29,19 +29,16 @@ func parseLine(line string, bagMap map[string]*bag) {
 	b, ok := bagMap[bagDesc]
 	// first time seeing it, add to map
 	if !ok {
-		//		spew.Dump("creating " + bagDesc + " from source")
 		b = &bag{
 			desc: bagDesc,
 		}
 		bagMap[bagDesc] = b
 	}
 
-	//	spew.Dump(contents)
 	for _, content := range contents {
 		// nothing to do here
 		content = strings.TrimSpace(content)
 		content = strings.TrimRight(content, ".")
-		//		spew.Dump(content)
 		if content == "no other bags" {
 			continue
 		}
@@ -50,7 +47,6 @@ func parseLine(line string, bagMap map[string]*bag) {
 			content = content + "s"
 		}
 		parts := strings.SplitN(content, " ", 2)
-		//		spew.Dump(parts)
 		if len(parts) != 2 {
 			log.Fatalf("content %s is not as expected", content)
 		}
@@ -61,17 +57,12 @@ func parseLine(line string, bagMap map[string]*bag) {
 		desc := parts[1]
 		bagC, ok := bagMap[desc]
 		if !ok {
-			//			spew.Dump("creating " + desc + " from being contained")
-
 			// bag doesn't exist, add it
 			bagC = &bag{
 				desc: desc,
 			}
 			bagMap[desc] = bagC
 		}
-		// bag already exists
-		// it's a container
-		// add it
 		bagC.containers = append(bagC.containers, b)
 
 		b.content = append(b.content, &bagContent{
@@ -92,15 +83,27 @@ func searchBag(b *bag, foundContainers map[string]bool, needle string) {
 }
 
 func searchContainers(b *bag, foundContainers map[string]bool, needle string) {
-	//	spew.Dump(b.desc)
 	for _, container := range b.containers {
 		searchBag(container, foundContainers, needle)
-		//		searched, ok := searchedContainers[]
-		// if container.desc == "muted yellow bags" {
-		// 	spew.Dump(container)
-		// }
 		searchContainers(container, foundContainers, container.desc)
 	}
+}
+
+func countBags(b *bag, bagMap map[string]*bag) int {
+	sum := 0
+	for _, content := range b.content {
+		//		content.num
+
+		desc := content.bag.desc
+		b2, ok := bagMap[desc]
+		if !ok {
+			log.Fatalf("couldn't find bag %s", desc)
+		}
+		sumB := countBags(b2, bagMap)
+		sum = sum + content.num + (content.num * sumB)
+		//content.
+	}
+	return sum
 }
 
 func day7() {
@@ -116,12 +119,5 @@ func day7() {
 	if !ok {
 		log.Fatal("couldn't find gold bag")
 	}
-
-	foundContainers := make(map[string]bool)
-	//	searchedContainers := make(map[string]bool)
-
-	searchContainers(goldbag, foundContainers, toFind)
-
-	log.Println(len(foundContainers))
-	//	spew.Dump(foundContainers)
+	log.Println(countBags(goldbag, bagMap))
 }
