@@ -85,27 +85,48 @@ func (p *program) parseInstructionLine(line string) {
 	})
 }
 
-func (p *program) exec() {
+func (p *program) execBrokenProg() bool {
 	for {
 		p.seenIns[p.index] = true
 		p.commands[p.index].ins.exec(p)
+		// executed correctly
+		if p.index == len(p.commands) {
+			return false
+		}
 		_, ok := p.seenIns[p.index]
 		if ok {
-			break
+			return true
 		}
 	}
-	log.Println(p.acc)
 }
 
 func day8() {
 	lines := readFile("day8input")
 
-	p := &program{}
-	p.seenIns = make(map[int]bool)
+	for idx, line := range lines {
+		if strings.HasPrefix(line, "acc") {
+			continue
+		}
 
-	for _, line := range lines {
-		p.parseInstructionLine(line)
+		// make copy of program
+		lines2 := make([]string, len(lines))
+		copy(lines2, lines)
+		line2 := strings.Replace(line, "nop", "jmp", 1)
+		line2 = strings.Replace(line2, "jmp", "nop", 1)
+
+		// replace one line
+		lines2[idx] = line2
+
+		p := &program{}
+		p.seenIns = make(map[int]bool)
+
+		for _, line3 := range lines2 {
+			p.parseInstructionLine(line3)
+		}
+
+		if !p.execBrokenProg() {
+			log.Println(p.acc)
+			break
+		}
 	}
-	//	spew.Dump(p)
-	p.exec()
 }
