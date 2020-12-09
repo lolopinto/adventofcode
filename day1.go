@@ -4,17 +4,13 @@ package main
 import (
 	"log"
 	"os"
-	"strconv"
 )
 
 func day1() {
 	lines := readFile("day1input")
 	m := make(map[int]bool)
 	for _, line := range lines {
-		i, err := strconv.Atoi(line)
-		if err != nil {
-			log.Fatal(err)
-		}
+		i := atoi(line)
 		m[i] = true
 	}
 

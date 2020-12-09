@@ -18,10 +18,7 @@ type bag struct {
 }
 
 func parseLine(line string, bagMap map[string]*bag) {
-	parts := strings.Split(line, "contain")
-	if len(parts) != 2 {
-		log.Fatalf("line %s is not as expected", line)
-	}
+	parts := splitLength(line, "contain", 2)
 
 	bagDesc := strings.TrimSpace(parts[0])
 	contents := strings.Split(parts[1], ",")

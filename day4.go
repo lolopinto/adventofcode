@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -30,10 +29,7 @@ func (i requiredInfo) required() bool {
 }
 
 func validRange(str string, min, max int) bool {
-	i, err := strconv.Atoi(str)
-	if err != nil {
-		return false
-	}
+	i := atoi(str)
 	return i >= min && i <= max
 }
 
@@ -171,10 +167,7 @@ func day4() {
 		} else {
 			parts := strings.Split(line, " ")
 			for _, part := range parts {
-				elem := strings.Split(part, ":")
-				if len(elem) != 2 {
-					log.Fatalf("the parts of a passport were not as expected %s", part)
-				}
+				elem := splitLength(part, ":", 2)
 				key := elem[0]
 				val := elem[1]
 				data[key] = val

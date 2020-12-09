@@ -3,8 +3,6 @@ package main
 // https://adventofcode.com/2020/day/2#part2
 import (
 	"log"
-	"strconv"
-	"strings"
 )
 
 type policy struct {
@@ -29,23 +27,10 @@ func (p policy) validPassword() bool {
 }
 
 func parsePolicy(line string) policy {
-	parts := strings.Split(line, " ")
-	if len(parts) != 3 {
-		log.Fatalf("invalid policy %s", line)
-	}
-	numParts := strings.Split(parts[0], "-")
-	if len(numParts) != 2 {
-		log.Fatalf("invalid range %s", parts[0])
-	}
-	firstPos, err := strconv.Atoi(numParts[0])
-	secondPos, err2 := strconv.Atoi(numParts[1])
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err2 != nil {
-		log.Fatal(err2)
-	}
+	parts := splitLength(line, " ", 3)
+	numParts := splitLength(parts[0], "-", 2)
+	firstPos := atoi(numParts[0])
+	secondPos := atoi(numParts[1])
 
 	var letter rune
 	for _, c := range parts[1] {

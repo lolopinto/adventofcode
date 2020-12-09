@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -16,10 +15,7 @@ func day9() {
 
 	findNumber := func() int {
 		for idx, line := range lines {
-			num, err := strconv.Atoi(line)
-			if err != nil {
-				log.Fatal(err)
-			}
+			num := atoi(line)
 			numbers[idx] = num
 		}
 
@@ -62,15 +58,8 @@ func day9() {
 		if value == num {
 			var result []int
 			parts := strings.Split(key, ":")
-			num, err := strconv.Atoi(parts[0])
-			num2, err2 := strconv.Atoi(parts[1])
-
-			if err != nil {
-				panic(err)
-			}
-			if err != nil {
-				panic(err2)
-			}
+			num := atoi(parts[0])
+			num2 := atoi(parts[1])
 			for i := num; i < num2; i++ {
 				result = append(result, numbers[i])
 			}

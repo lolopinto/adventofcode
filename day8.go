@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -46,24 +45,8 @@ func (op *jump) exec(p *program) {
 }
 
 func (p *program) parseInstructionLine(line string) {
-	parts := strings.Split(line, " ")
-	if len(parts) != 2 {
-		log.Fatalf("line %s not as expected", line)
-	}
-	var num int
-	var err error
-	if strings.HasPrefix(parts[1], "+") {
-		num, err = strconv.Atoi(strings.TrimPrefix(parts[1], "+"))
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	} else {
-		num, err = strconv.Atoi(strings.TrimPrefix(parts[1], "-"))
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-		num = num * -1
-	}
+	parts := splitLength(line, " ", 2)
+	num := atoi(parts[1])
 	var i instruction
 	switch parts[0] {
 	case "nop":
