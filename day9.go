@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"os"
+	"sort"
 	"strconv"
+	"strings"
 )
 
 func day9() {
@@ -11,47 +13,69 @@ func day9() {
 
 	preamble := 25
 	numbers := make([]int, len(lines))
-	for idx, line := range lines {
-		num, err := strconv.Atoi(line)
-		if err != nil {
-			log.Fatal(err)
+
+	findNumber := func() int {
+		for idx, line := range lines {
+			num, err := strconv.Atoi(line)
+			if err != nil {
+				log.Fatal(err)
+			}
+			numbers[idx] = num
 		}
-		numbers[idx] = num
-	}
-	//	spew.Dump(numbers)
 
-	for i := preamble; i < len(numbers); i++ {
-		num := numbers[i]
+		for i := preamble; i < len(numbers); i++ {
+			num := numbers[i]
 
-		//		log.Println("initial", num)
-		//		var found bool
+			list1 := numbers[i-preamble : i]
+			list2 := numbers[i-preamble : i]
 
-		list1 := numbers[i-preamble : i]
-		list2 := numbers[i-preamble : i]
-		//		spew.Dump(list1, list2)
-
-		var found bool
-		for _, candidate1 := range list1 {
-			for _, candidate2 := range list2 {
-				if candidate1+candidate2 == num {
-					found = true
-					break
+			var found bool
+			for _, candidate1 := range list1 {
+				for _, candidate2 := range list2 {
+					if candidate1+candidate2 == num {
+						found = true
+						break
+					}
 				}
 			}
-		}
-		// for j := i - 1; j == preamble; j-- {
-		// 	for k := i - 1; k == preamble; k-- {
-		// 		log.Println(num, numbers[j], numbers[k])
-		// 		if numbers[j]+numbers[k] == num {
-		// 			found = true
-		// 			break
-		// 		}
-		// 	}
-		// }
 
-		if !found {
-			log.Println(num)
-			os.Exit(1)
+			if !found {
+				return num
+			}
+		}
+		panic("should have returned")
+	}
+
+	num := findNumber()
+
+	ranges := make(map[string]int)
+	for idx, num2 := range numbers {
+		lastSum := num2
+		for idx2 := idx + 1; idx2 < len(numbers); idx2++ {
+			num3 := numbers[idx2]
+			lastSum = lastSum + num3
+			ranges[fmt.Sprintf("%d:%d", idx, idx2)] = lastSum
+		}
+	}
+
+	for key, value := range ranges {
+		if value == num {
+			var result []int
+			parts := strings.Split(key, ":")
+			num, err := strconv.Atoi(parts[0])
+			num2, err2 := strconv.Atoi(parts[1])
+
+			if err != nil {
+				panic(err)
+			}
+			if err != nil {
+				panic(err2)
+			}
+			for i := num; i < num2; i++ {
+				result = append(result, numbers[i])
+			}
+			sort.Ints(result)
+			log.Println(result[0] + result[len(result)-1])
 		}
 	}
 }
