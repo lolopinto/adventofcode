@@ -1,40 +1,39 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sort"
 )
 
-func day10() {
-	lines := readFile("day10input")
-
-	numbers := make([]int, len(lines))
-
-	for i, line := range lines {
-		numbers[i] = atoi(line)
+func countJoltPaths(list []int, m map[string]int, initial, max int) int {
+	key := fmt.Sprintf("%d:%d", len(list), initial)
+	v, ok := m[key]
+	//	spew.Dump(m)
+	if ok {
+		return v
 	}
+	currCount := 0
+	if max-initial <= 3 {
+		currCount++
+	}
+	if len(list) == 0 {
+		return currCount
+	}
+	if list[0]-initial <= 3 {
+		currCount += countJoltPaths(list[1:], m, list[0], max)
+	}
+	currCount += countJoltPaths(list[1:], m, initial, max)
+	m[key] = currCount
+	//	log.Println(key, currCount)
+	return currCount
+}
 
+func day10() {
+	numbers := readInts("day10input")
 	sort.Ints(numbers)
 
-	diff1 := 1
-	diff3 := 1
-
-	init := numbers[0]
-	last := init
-	for idx, num := range numbers {
-		if idx == 0 {
-			continue
-		}
-		if num-last > 3 {
-			continue
-		}
-		if num-last == 1 {
-			diff1++
-		}
-		if num-last == 3 {
-			diff3++
-		}
-		last = num
-	}
-	log.Println(diff1, diff3, diff1*diff3)
+	// tried to do something iteratively initially and couldn't get it to work :(
+	m := make(map[string]int)
+	log.Println(countJoltPaths(numbers, m, 0, numbers[len(numbers)-1]+3))
 }

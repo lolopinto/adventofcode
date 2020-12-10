@@ -24,6 +24,20 @@ func atoi(str string) int {
 	return i
 }
 
+func ints(lines []string) []int {
+	numbers := make([]int, len(lines))
+
+	for i, line := range lines {
+		numbers[i] = atoi(line)
+	}
+	return numbers
+}
+
+func readInts(file string) []int {
+	lines := readFile(file)
+	return ints(lines)
+}
+
 func splitLength(str string, sep string, length int) []string {
 	parts := strings.Split(str, sep)
 	if len(parts) != length {
