@@ -28,7 +28,6 @@ func matrix(c, r int, matrix []string) byte {
 	emp := empty(matrix[r][c])
 	occ := occupied(matrix[r][c])
 
-	emptyCount := 0
 	occupiedCount := 0
 	for i := -1; i < 2; i++ {
 		for j := -1; j < 2; j++ {
@@ -80,9 +79,6 @@ func matrix(c, r int, matrix []string) byte {
 			}
 
 			if validSeat(c2, r2, matrix) && !floor(matrix[r2][c2]) {
-				if empty(matrix[r2][c2]) {
-					emptyCount++
-				}
 				if occupied(matrix[r2][c2]) {
 					occupiedCount++
 				}
