@@ -13,59 +13,43 @@ type pt struct {
 	curDir byte
 }
 
-func direction(dir byte, num int, p *pt) {
+func direction(dir byte, num int, p *pt, wp *pt) {
 	switch dir {
 	case 'F':
-		direction(p.curDir, num, p)
+		p.x += wp.x * num
+		p.y += wp.y * num
 		break
 	case 'N':
-		p.y += num
+		wp.y += num
 		break
 	case 'S':
-		p.y -= num
+		wp.y -= num
 		break
 	case 'E':
-		p.x += num
+		wp.x += num
 		break
 	case 'W':
-		p.x -= num
+		wp.x -= num
 		break
 	case 'L':
-		switch p.curDir {
-		case 'N':
-			p.curDir = 'W'
-			break
-		case 'S':
-			p.curDir = 'E'
-			break
-		case 'E':
-			p.curDir = 'N'
-			break
-		case 'W':
-			p.curDir = 'S'
-			break
-		}
+		var tmp int
+		tmp = wp.x
+		wp.x = -wp.y
+		wp.y = tmp
 		if num-90 != 0 {
-			direction('L', num-90, p)
+			direction('L', num-90, p, wp)
 		}
 		return
 	case 'R':
-		switch p.curDir {
-		case 'N':
-			p.curDir = 'E'
-			break
-		case 'S':
-			p.curDir = 'W'
-			break
-		case 'E':
-			p.curDir = 'S'
-			break
-		case 'W':
-			p.curDir = 'N'
-			break
-		}
+		// moving right...
+		var tmp int
+		//
+		tmp = wp.x
+		wp.x = wp.y
+		wp.y = -tmp
+
 		if num-90 != 0 {
-			direction('R', num-90, p)
+			direction('R', num-90, p, wp)
 		}
 		return
 	}
@@ -75,12 +59,13 @@ func day12() {
 	lines := readFile("day12input")
 
 	p := &pt{curDir: 'E'}
+	wp := &pt{curDir: 'E', x: 10, y: 1}
 	for _, line := range lines {
 		dir := line[0]
 		num := atoi(line[1:])
 
-		direction(dir, num, p)
-		log.Println(dir, num, p)
+		direction(dir, num, p, wp)
+		log.Println(dir, num, wp, p)
 
 	}
 	spew.Dump(math.Abs(float64(p.x)) + math.Abs(float64(p.y)))
