@@ -2,38 +2,69 @@ package main
 
 import (
 	"log"
-	"sort"
 	"strings"
 )
+
+type datapoint struct {
+	id int
+	t  int
+}
 
 func day13() {
 	lines := readFile("day13input")
 	timestamp := atoi(lines[0])
-	//	data := lines[1]
 
 	parts := strings.Split(lines[1], ",")
-	var ids []int
-	for _, part := range parts {
+	var data []datapoint
+	for i, part := range parts {
 		if part == "x" {
 			continue
 		}
-		ids = append(ids, atoi(part))
+
+		data = append(data, datapoint{
+			id: atoi(part),
+			t:  i,
+		})
 	}
-	earliest := [][]int{}
-	for _, ts := range ids {
-		log.Println(timestamp / ts)
-		for i := 0; true; i++ {
-			if ts*i > timestamp {
-				earliest = append(earliest, []int{ts * i, ts})
+
+	first := data[0]
+	ts := first.id
+
+	// find minimum value
+	var earliest int
+
+	idx := 0
+	for i := idx; true; i++ {
+		if ts*i > timestamp {
+			earliest = ts * i
+			break
+		}
+	}
+
+	for {
+		correct := true
+		for _, datum := range data {
+			if (earliest+datum.t)%datum.id != 0 {
+				correct = false
 				break
 			}
 		}
+		if correct {
+			log.Println(earliest)
+			break
+		}
+		idx++
+		earliest = ts * idx
 	}
-	sort.Slice(earliest, func(i, j int) bool {
-		return earliest[i][0] < earliest[j][0]
-	})
-	log.Println(ids)
-	log.Println(earliest)
-	log.Println((earliest[0][0] - timestamp) * earliest[0][1])
+
+	//		idx++
+	//	}
+	//		}
+	// sort.Slice(earliest, func(i, j int) bool {
+	// 	return earliest[i][0] < earliest[j][0]
+	// })
+	// //	log.Println(ids)
+	// //	log.Println(earliest)
+	// log.Println((earliest[0][0] - timestamp) * earliest[0][1])
 
 }
