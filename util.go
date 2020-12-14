@@ -45,3 +45,33 @@ func splitLength(str string, sep string, length int) []string {
 	}
 	return parts
 }
+
+func leftPad(str string, c string, desiredLength int) string {
+	if len(str) >= desiredLength {
+		return str
+	}
+	if len(c) != 1 {
+		log.Fatalf("can only left pad with 1 character")
+	}
+	var sb strings.Builder
+	for j := 0; j < desiredLength-len(str); j++ {
+		sb.WriteString(c)
+	}
+	sb.WriteString(str)
+	return sb.String()
+}
+
+func rightPad(str string, c string, desiredLength int) string {
+	if len(str) >= desiredLength {
+		return str
+	}
+	if len(c) != 1 {
+		log.Fatalf("can only right pad with 1 character")
+	}
+	var sb strings.Builder
+	sb.WriteString(str)
+	for j := 0; j < desiredLength-len(str); j++ {
+		sb.WriteString(c)
+	}
+	return sb.String()
+}

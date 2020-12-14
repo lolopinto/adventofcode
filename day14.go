@@ -14,14 +14,14 @@ func day14() {
 	var mask string
 	for _, line := range lines {
 		if strings.HasPrefix(line, "mask") {
-			parts := splitLength(line, "=", 2)
-			mask = strings.TrimSpace(parts[1])
+			parts := splitLength(line, " = ", 2)
+			mask = parts[1]
 			//			log.Println(mask)
 		} else {
-			parts := splitLength(line, "=", 2)
-			decimal := atoi(strings.TrimSpace(parts[1]))
+			parts := splitLength(line, " = ", 2)
+			decimal := parts[1]
 			idx := strings.Index(parts[0], "]")
-			address := atoi(strings.TrimSpace(parts[0][4:idx]))
+			address := atoi(parts[0][4:idx])
 
 			result := make(map[int]byte, 36)
 			var floating []int
@@ -61,14 +61,7 @@ func day14() {
 			// log.Println("result", result)
 			for i := 0; i < numFloating; i++ {
 				str := strconv.FormatInt(int64(i), 2)
-				if len(str) < len(floating) {
-					var sb strings.Builder
-					for j := 0; j < len(floating)-len(str); j++ {
-						sb.WriteString("0")
-					}
-					sb.WriteString(str)
-					str = sb.String()
-				}
+				str = leftPad(str, "0", len(floating))
 				result2 := make(map[int]byte)
 				for k, v := range result {
 					result2[k] = v
