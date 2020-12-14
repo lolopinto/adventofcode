@@ -13,13 +13,11 @@ func day14() {
 	m := make(map[int]int)
 	var mask string
 	for _, line := range lines {
-		if strings.HasPrefix(line, "mask") {
-			parts := splitLength(line, " = ", 2)
+		parts := splitLength(line, " = ", 2)
+		if parts[0] == "mask" {
 			mask = parts[1]
-			//			log.Println(mask)
 		} else {
-			parts := splitLength(line, " = ", 2)
-			decimal := parts[1]
+			decimal := atoi(parts[1])
 			idx := strings.Index(parts[0], "]")
 			address := atoi(parts[0][4:idx])
 
@@ -56,24 +54,24 @@ func day14() {
 
 			numFloating := int(math.Pow(2, float64(len(floating))))
 
-			// log.Println("floating", floating)
-			// log.Println("num", numFloating)
-			// log.Println("result", result)
 			for i := 0; i < numFloating; i++ {
+				// get from 000 to 100(and more) of floating bits
 				str := strconv.FormatInt(int64(i), 2)
 				str = leftPad(str, "0", len(floating))
+
+				// make copy of map
 				result2 := make(map[int]byte)
 				for k, v := range result {
 					result2[k] = v
 				}
-				//				log.Println("str", str)
-				//				log.Println("floating", floating, str)
+
+				// set whatever floating values that are 1
 				for j := 0; j < len(floating); j++ {
 					if str[j] == '1' {
 						result2[floating[j]] = 1
 					}
 				}
-				//				log.Println("result2", result2)
+				// convert to a number
 				number := 0
 				for k, v := range result2 {
 					if v == 1 {
@@ -85,7 +83,6 @@ func day14() {
 					m[number] = decimal
 				}
 			}
-
 		}
 	}
 
