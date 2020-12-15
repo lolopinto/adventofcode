@@ -50,7 +50,7 @@ func day15() {
 		return number
 	}
 
-	for turn := 1; turn <= 2020; turn++ {
+	for turn := 1; turn <= 30000000; turn++ {
 		lastNumber = takeTurn(turn)
 		//		log.Println("turn", lastNumber)
 	}
