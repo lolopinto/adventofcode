@@ -21,21 +21,14 @@ func day15() {
 			number = numbers[turn-1]
 		} else {
 			prevTurns, ok := m[lastNumber]
-			// log.Println(m)
-			// log.Println(prevTurns, ok)
 			if !ok {
-				// first time
-				// log.Println("first time", turn)
-				// number = 0
 				log.Fatal("shouldn't happen")
 			} else {
 				l := len(prevTurns)
-				//				log.Println("turn", turn, prevTurns)
 				if l == 1 {
 					number = 0
 				} else {
 					number = prevTurns[l-1] - prevTurns[l-2]
-
 				}
 			}
 		}
@@ -52,7 +45,6 @@ func day15() {
 
 	for turn := 1; turn <= 30000000; turn++ {
 		lastNumber = takeTurn(turn)
-		//		log.Println("turn", lastNumber)
 	}
 	log.Println(lastNumber)
 }
