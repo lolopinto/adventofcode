@@ -1,9 +1,8 @@
 package main
 
 import (
+	"log"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type ticketRange struct {
@@ -26,7 +25,7 @@ func day16() {
 
 	ranges := []ticketRange{}
 	validTickets := []ticket{}
-	var ticket string
+	var myticket string
 	for _, line := range lines {
 		if line == "" {
 			continue
@@ -60,7 +59,7 @@ func day16() {
 		}
 
 		if mytickets && !nearby {
-			ticket = line
+			myticket = line
 			continue
 		}
 
@@ -96,46 +95,59 @@ func day16() {
 		}
 	}
 
-	ignore := map[string]bool{
-		"duration":           true,
-		"arrival track":      true,
-		"row":                true,
-		"arrival location":   true,
-		"seat":               true,
-		"arrival station":    true,
-		"departure platform": true,
-		"departure location": true,
-		"departure date":     true,
-		"departure station":  true,
-		"departure track":    true,
-	}
-	//	spew.Dump(validTickets)
 	l := len(ranges)
-	result := make(map[int][]string)
+	result := make(map[int]map[string]bool)
 	for i := 0; i < l; i++ {
 
 		//		all := true
-		var last map[string]bool
+		var data map[string]bool
 		for idx, t := range validTickets {
 			if idx == 0 {
-				last = t.validPos[i]
+				data = t.validPos[i]
 			} else {
 				current := t.validPos[i]
-				for k := range last {
-					if !current[k] || ignore[k] {
-						last[k] = false
+				for k := range data {
+					if !current[k] {
+						delete(data, k)
 					}
 				}
 			}
 		}
-		l := []string{}
-		for k, v := range last {
-			if v {
-				l = append(l, k)
-			}
-		}
-		result[i] = l
+		result[i] = data
 	}
 
-	spew.Dump(result)
+	m := make(map[string]int)
+	for len(result) > 0 {
+		for k, v := range result {
+			if len(v) == 1 {
+
+				// set the key in the final map...
+				var found string
+				for key := range v {
+					m[key] = k
+					found = key
+				}
+
+				for k2, v2 := range result {
+					if k2 == k {
+						continue
+					}
+					// delete key from all other results
+					delete(v2, found)
+				}
+				// delete what we just found
+				delete(result, k)
+			}
+		}
+	}
+
+	numbers := ints(strings.Split(myticket, ","))
+
+	mult := 1
+	for k, v := range m {
+		if strings.HasPrefix(k, "departure") {
+			mult *= numbers[v]
+		}
+	}
+	log.Println(mult)
 }
