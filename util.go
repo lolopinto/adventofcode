@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -74,4 +75,27 @@ func rightPad(str string, c string, desiredLength int) string {
 		sb.WriteString(c)
 	}
 	return sb.String()
+}
+
+func min(slice []int) int {
+	min := math.MaxInt32
+	for _, val := range slice {
+		if val < min {
+			min = val
+		}
+	}
+	//log.Println("min", min)
+	return min
+}
+
+func max(slice []int) int {
+	max := math.MinInt32
+	for _, val := range slice {
+		if val > max {
+			max = val
+		}
+	}
+	//	log.Println("max", max)
+
+	return max
 }
