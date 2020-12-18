@@ -20,6 +20,7 @@ func readFile(path string) []string {
 func atoi(str string) int {
 	i, err := strconv.Atoi(str)
 	if err != nil {
+		//		panic("aa")
 		log.Fatal(err)
 	}
 	return i
