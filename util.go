@@ -17,6 +17,25 @@ func readFile(path string) []string {
 	return strings.Split(string(b), "\n")
 }
 
+// read chunks separated by \n
+func readFileChunks(path string, length int) [][]string {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	parts := strings.Split(string(b), "\n\n")
+	if len(parts) != length {
+		log.Fatal("unexpected length")
+	}
+
+	result := make([][]string, len(parts))
+	for idx, part := range parts {
+		result[idx] = strings.Split(part, "\n")
+	}
+	return result
+}
+
 func atoi(str string) int {
 	i, err := strconv.Atoi(str)
 	if err != nil {

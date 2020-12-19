@@ -9,107 +9,87 @@ import (
 type rule struct {
 	idx   int
 	rule  string
-	rules [][]int //
+	rules [][]int
 }
 
-func optionsForRule(r *rule, rules map[int]*rule, result map[int]map[string]bool) map[string]bool {
-	m, ok := result[r.idx]
-	if ok {
-		return m
-	}
-	m = make(map[string]bool)
+// got inspiration from someone on reddit for this one
+// go through and match recursively from the front to see if the letters match
+// if we end up with "" after going through, we've matched
+func applyRules(r *rule, rules map[int]*rule, str string) map[string]bool {
+	log.Println(r, str)
+	result := make(map[string]bool)
 
 	if r.rule != "" {
-		//		log.Println(r.idx, r.rule)
-		m[r.rule] = true
-		result[r.idx] = m
-		return m
-	}
+		if str != "" && string(str[0]) == r.rule {
+			result[str[1:]] = true
+			return result
+		}
+	} else {
+		for _, opts := range r.rules {
+			m := make(map[string]bool)
+			m[str] = true
+			for _, idx := range opts {
+				r2 := rules[idx]
 
-	for _, opts := range r.rules {
-		var strs []string
-		// can be more than 2
-		for i, idx := range opts {
-			r2 := rules[idx]
-			options := optionsForRule(r2, rules, result)
-			//			spew.Dump("result for options", r2, options)
-			if i == 0 {
-				for k := range options {
-					strs = append(strs, k)
-				}
-				//				log.Println("1st", r.idx, strs)
-			} else {
-				var strs2 []string
-				for _, s := range strs {
-					for k := range options {
-						strs2 = append(strs2, s+k)
+				m2 := make(map[string]bool)
+				for k := range m {
+					vals := applyRules(r2, rules, k)
+					for k := range vals {
+						m2[k] = true
 					}
 				}
-				//				spew.Dump("2nd", r.idx, strs2)
-				strs = strs2
+				m = m2
+				if len(m) == 0 {
+					break
+				}
 			}
-		}
-		for _, str := range strs {
-			m[str] = true
+			for k := range m {
+				result[k] = true
+			}
 		}
 	}
 
-	//	spew.Dump(r.idx, m)
-	result[r.idx] = m
-	return m
+	return result
 }
 
 func day19() {
-	lines := readFile("day19input")
-
-	result := make(map[int]map[string]bool)
+	chunks := readFileChunks("day19input", 2)
 	rules := make(map[int]*rule)
-	readRules := true
-	options := make(map[string]bool)
 	count := 0
-	for _, line := range lines {
-		if line == "" {
-			readRules = false
 
-			// time to check the rules
-
-			r := rules[0]
-			options = optionsForRule(r, rules, result)
-			//			spew.Dump(options)
-			continue
+	for _, r := range chunks[0] {
+		parts := splitLength(r, ": ", 2)
+		//			log.Println(parts[0], len(parts[0]), "dis", parts[1])
+		idx := atoi(parts[0])
+		r := &rule{
+			idx: idx,
 		}
 
-		//		log.Println(line)
-		if readRules {
-			parts := splitLength(line, ": ", 2)
-			//			log.Println(parts[0], len(parts[0]), "dis", parts[1])
-			idx := atoi(parts[0])
-			r := &rule{
-				idx: idx,
-				//				rule:
-			}
-			if parts[1][0] == '"' {
-				rule, err := strconv.Unquote(parts[1])
-				die(err)
-				r.rule = rule
-			} else {
-				rs := strings.Split(parts[1], " | ")
-				for _, indices := range rs {
-					//					log.Println(strings.Split(indices, " "))
-					r.rules = append(r.rules, ints(strings.Split(indices, " ")))
-				}
-			}
-
-			//			rules = append(rules)
-			//			spew.Dump(rs)
-			rules[idx] = r
+		if parts[1][0] == '"' {
+			rule, err := strconv.Unquote(parts[1])
+			die(err)
+			r.rule = rule
 		} else {
-			_, ok := options[line]
-			if ok {
-				count++
+			rs := strings.Split(parts[1], " | ")
+			for _, indices := range rs {
+				r.rules = append(r.rules, ints(strings.Split(indices, " ")))
 			}
+		}
+
+		rules[idx] = r
+	}
+
+	// only thing needed for part2 crazy
+	// rules[8] = &rule{idx: 8, rules: [][]int{[]int{42}, []int{42, 8}}}
+	// rules[11] = &rule{idx: 42, rules: [][]int{[]int{42, 31}, []int{42, 11, 31}}}
+
+	for _, msg := range chunks[1] {
+		ret := applyRules(rules[0], rules, msg)
+		_, ok := ret[""]
+		if ok {
+			count++
 		}
 	}
-	//	spew.Dump(rules)
+
 	log.Println(count)
 }
