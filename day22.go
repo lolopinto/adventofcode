@@ -12,11 +12,56 @@ func day22() {
 	p1 := parsePlayer(chunks[0])
 	p2 := parsePlayer(chunks[1])
 
-	globalNum = 1
-	g := &game{num: globalNum}
-	winner := g.playGame(p1, p2)
+	// non-recursive version
+	// globalNum = 1
+	// g := &game{num: globalNum}
+	// winner := g.playGame(p1, p2)
+	// log.Println(winner.calcScore())
 
-	log.Println(winner.calcScore())
+	// recursive version
+	gameNum := 0
+	winner := combat(p1, p2, gameNum)
+	if winner == 1 {
+		log.Println(p1.calcScore())
+	} else {
+		log.Println(p2.calcScore())
+	}
+}
+
+func combat(p1, p2 *player, gameNum int) int {
+	round := 1
+	gameNum++
+	for {
+		//		log.Println("game", gameNum, "round", round, p1.cards, p2.cards)
+
+		if p1.previouslySeen() || p2.previouslySeen() {
+			return 1
+		}
+		if len(p1.cards) == 0 || len(p2.cards) == 0 {
+			break
+		}
+
+		c1 := p1.pop()
+		c2 := p2.pop()
+
+		if len(p1.cards) >= c1 && len(p2.cards) >= c2 {
+			winner := combat(p1.clone(c1), p2.clone(c2), gameNum)
+			if winner == 1 {
+				p1.append(c1, c2)
+			} else {
+				p2.append(c2, c1)
+			}
+		} else if c1 > c2 {
+			p1.append(c1, c2)
+		} else {
+			p2.append(c2, c1)
+		}
+		round++
+	}
+	if len(p1.cards) == 0 {
+		return 2
+	}
+	return 1
 }
 
 type game struct {
@@ -51,20 +96,12 @@ func (g *game) playGame(p1, p2 *player) *player {
 }
 
 func (g *game) cloneAndPlay(p1, p2 *player, c1, c2 int) *player {
-	p1cards := make([]int, c1)
-	for i := 0; i < c1; i++ {
-		p1cards[i] = p1.cards[i]
-	}
-	p2cards := make([]int, c2)
-	for i := 0; i < c2; i++ {
-		p2cards[i] = p2.cards[i]
-	}
+	p1clone := p1.clone(c1)
+	p2clone := p2.clone(c2)
 
 	globalNum++
 	g2 := &game{num: globalNum}
 
-	p1clone := &player{cards: p1cards}
-	p2clone := &player{cards: p2cards}
 	winner := g2.playGame(p1clone, p2clone)
 
 	if winner == p1clone {
@@ -109,6 +146,12 @@ func (p *player) getKey() string {
 		strs[i] = fmt.Sprintf("%v", v)
 	}
 	return strings.Join(strs, ",")
+}
+
+func (p *player) clone(c int) *player {
+	cards := make([]int, c)
+	copy(cards, p.cards[0:c])
+	return &player{cards: cards}
 }
 
 func (p *player) calcPreviousRound() {
