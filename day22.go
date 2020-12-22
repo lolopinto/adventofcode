@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func day22() {
@@ -17,7 +16,7 @@ func day22() {
 	g := &game{num: globalNum}
 	winner := g.playGame(p1, p2)
 
-	spew.Dump(winner.calcScore())
+	log.Println(winner.calcScore())
 }
 
 type game struct {
@@ -33,7 +32,6 @@ func (g *game) playGame(p1, p2 *player) *player {
 		//		log.Println("game", g.num, "round", round, p1.cards, p2.cards)
 
 		if g.gameOver(p1, p2) {
-			//			log.Println("game over", round)
 			break
 		}
 		c1 := p1.pop()
@@ -53,10 +51,8 @@ func (g *game) playGame(p1, p2 *player) *player {
 }
 
 func (g *game) cloneAndPlay(p1, p2 *player, c1, c2 int) *player {
-	//	log.Println(c1, c2)
 	p1cards := make([]int, c1)
 	for i := 0; i < c1; i++ {
-		//	for k, v := range p1.cards {
 		p1cards[i] = p1.cards[i]
 	}
 	p2cards := make([]int, c2)
@@ -77,7 +73,7 @@ func (g *game) cloneAndPlay(p1, p2 *player, c1, c2 int) *player {
 	return p2
 }
 
-func (g *game) calcWinner(p1, p2 *player, c1, c2 int) *player {
+func (g *game) calcWinner(p1, p2 *player, c1, c2 int) {
 	if len(p1.cards) >= c1 && len(p2.cards) >= c2 {
 		winner := g.cloneAndPlay(p1, p2, c1, c2)
 
@@ -87,23 +83,11 @@ func (g *game) calcWinner(p1, p2 *player, c1, c2 int) *player {
 		} else {
 			winner.append(c2, c1)
 		}
-
-		return nil
-	}
-
-	if g.player1Winner {
-		//		return p1
-	}
-	if c1 > c2 {
+	} else if c1 > c2 {
 		p1.append(c1, c2)
 	} else {
 		p2.append(c2, c1)
 	}
-	// if c1 > c2 {
-	// 	return p1
-	// }
-	// return p2
-	return nil
 }
 
 func (g *game) gameOver(p1, p2 *player) bool {
