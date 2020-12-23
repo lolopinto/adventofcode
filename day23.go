@@ -9,53 +9,56 @@ import (
 func day23() {
 	lines := readFile("day23input")
 
-	numbers := make([]int, len(lines[0]))
+	count := 9
+	numbers := make([]int, count)
 
 	for i, c := range lines[0] {
 		numbers[i] = atoi(string(c))
 	}
 
-	correctLen := len(numbers)
-	// move 8 broken
+	//	spew.Dump(numbers)
+	//	correctLen := len(lines[0])
 
+	// no zero
+	// for j := len(lines[0]) + 1; j <= count; j++ {
+	// 	numbers[j-1] = j
+	// }
+
+	//	spew.Dump(numbers)
+	// return
+
+	// num moves is different
+
+	s := &inPlaceSlice{data: numbers}
 	for i := 1; i <= 100; i++ {
-		currentIdx := (i - 1) % len(numbers)
-		currentCup := numbers[currentIdx]
+		currentIdx := (i - 1) % len(s.data)
+		currentCup := s.get(currentIdx)
 
-		log.Println("move", i, numbers, "current idx", currentIdx, "current cup", currentCup)
-		//		newIdx := currentIdx + 3
-		//		pickedUp := [3]int{currentIdx + 1, currentIdx + 2, currentIdx + 3}
-		//		log.Println("new slice", currentIdx+1, currentIdx+4)
-		pickedUp := newSlice(numbers, currentIdx+1, currentIdx+4)
-		//		numbers[currentIdx+1 : currentIdx+4]
-		//		left := numbers[0 : currentIdx+1]
-		//		var left []int
-		//		if currentIdx+4 < len(numbers) {
+		//		log.Println("move", i, s.data, "current idx", currentIdx, "current cup", currentCup)
+		// get indices...
+		pickedUpRange := [2]int{currentIdx + 1, currentIdx + 4}
+		//		pickedUp := newSlice(numbers, currentIdx+1, currentIdx+4)
 		leftIdx := 0
 		if currentIdx+4 > len(numbers) {
 			leftIdx = (currentIdx + 4) % len(numbers)
 		}
-		//		log.Println("left idx", leftIdx)
 
-		left := newSlice(numbers, leftIdx, currentIdx+1)
-		// } else {
-		// 	// wraps around
-		// 	left = newSlice(numbers, currentIdx+4, currentIdx+1)
-		// }
+		leftRange := [2]int{leftIdx, currentIdx + 1}
+		//		left := newSlice(numbers, leftIdx, currentIdx+1)
 
-		right := newSlice(numbers, currentIdx+4, -1)
-		//		right := numbers[currentIdx+4:]
+		rightRange := [2]int{currentIdx + 4, len(s.data)}
+		//		right := newSlice(numbers, currentIdx+4, -1)
 
+		//		log.Println("ranges", "pickedUp", pickedUpRange, "left", leftRange, "righth", rightRange)
 		destination := currentCup - 1
 		for {
 			if destination <= 0 {
-				destination = 9
+				destination = count
 			}
 
 			inDestination := false
-			for _, p := range pickedUp {
-				if p == destination {
-					//					log.Println("TODO", p, destination)
+			for i := pickedUpRange[0]; i < pickedUpRange[1]; i++ {
+				if s.get(i) == destination {
 					inDestination = true
 					break
 				}
@@ -65,108 +68,151 @@ func day23() {
 			}
 			destination--
 		}
-		log.Println("pickedup", pickedUp, "left", left, "righth", right, "destination", destination)
+		//		log.Println("pickedup", pickedUp, "left", left, "righth", right, "destination", destination)
 		foundIdx := -1
-		for idx, v := range right {
-			if v == destination {
-				foundIdx = idx
+		for i := rightRange[0]; i < rightRange[1]; i++ {
+			if s.get(i) == destination {
+				foundIdx = i
 				break
 			}
 		}
-		// it's in theh left
+		// it's in the left
 		if foundIdx == -1 {
-			for idx, v := range left {
-				if v == destination {
-					foundIdx = idx
+			for i := leftRange[0]; i < leftRange[1]; i++ {
+				if s.get(i) == destination {
+					foundIdx = i
 					break
 				}
 			}
 			if foundIdx == -1 {
-				log.Fatalf("whaaa")
+				//				log.Println("pickedup", pickedUp, "left", left, "righth", right, "destination", destination)
+				log.Fatalf("whaaa, couldn't find destination")
 			}
 
-			// nextCupIdx := currentIdx + 1
-			// nextCup := numbers[nextCupIdx]
-			numbers = make([]int, 0)
-			//			numbers = append(numbers, left...)
-			// it's found in the left
-			numbers = append(numbers, newSlice(left, 0, foundIdx+1)...)
-			numbers = append(numbers, pickedUp...)
-			numbers = append(numbers, newSlice(left, foundIdx+1, -1)...)
-			numbers = append(numbers, right...)
+			//			log.Println("left")
+			s = s.clone(
+				[2]int{leftRange[0], foundIdx + 1},
+				[2]int{pickedUpRange[0], pickedUpRange[1]},
+				[2]int{foundIdx + 1, leftRange[1]},
+				[2]int{rightRange[0], rightRange[1]},
+			)
 
 			// now change
 			//			log.Println("lefttt", numbers, currentIdx, currentCup)
 
-			for k, v := range numbers {
+			// TODO can even simplify this more?
+			// TODO hhmm too slow....
+			for k, v := range s.data {
 				if v == currentCup {
 					//					log.Println("next", k, currentIdx)
-					temp := numbers
-					numbers = make([]int, 0)
 					// rearrange it so that current index remains where it's at
-					numbers = append(numbers, newSlice(temp, k-currentIdx, -1)...)
-					numbers = append(numbers, newSlice(temp, 0, k-currentIdx)...)
+					//					log.Println(k, currentIdx, temp, v)
+					s = s.clone(
+						[2]int{k - currentIdx, len(s.data)},
+						[2]int{0, k - currentIdx},
+					)
 					break
 				}
 			}
 
 		} else {
-			numbers = make([]int, 0)
-			numbers = append(numbers, left...)
-			numbers = append(numbers, newSlice(right, 0, foundIdx+1)...)
-			numbers = append(numbers, pickedUp...)
-			numbers = append(numbers, newSlice(right, foundIdx+1, -1)...)
+			//			log.Println("right", foundIdx)
+			s = s.clone(
+				[2]int{leftRange[0], leftRange[1]},
+				[2]int{rightRange[0], foundIdx + 1},
+				[2]int{pickedUpRange[0], pickedUpRange[1]},
+				[2]int{foundIdx + 1, rightRange[1]},
+			)
 			//		currentIdx = len(left) + foundIdx
 
 		}
 
-		if len(numbers) != correctLen {
-			log.Fatal("numbers incorrect", numbers, "end of move ", i)
+		if len(s.data) != count {
+			log.Fatal("numbers incorrect", s.data, "end of move ", i)
 		}
 	}
 
 	idx := -1
-	for k, v := range numbers {
+	for k, v := range s.data {
 		if v == 1 {
 			idx = k
 			break
 		}
 	}
 	//	log.Println(idx)
+	log.Println(s.get(idx+1) * s.get(idx+2))
 	var sb strings.Builder
-	for i := idx + 1; i < idx+len(numbers); i++ {
-		j := i % len(numbers)
-		sb.WriteString(fmt.Sprintf("%v", numbers[j]))
+	for i := idx + 1; i < idx+len(s.data); i++ {
+		j := i % len(s.data)
+		sb.WriteString(fmt.Sprintf("%v", s.data[j]))
 	}
 	log.Println(sb.String())
 
 	//	log.Println(numbers)
 }
 
-// func getIdx(numbers []int, idx int) int {
-// 	log.Println(idx)
-// 	idx = idx % len(numbers)
-// 	log.Println(idx % len(numbers))
-// 	return numbers[idx]
-
-// 	// TODO
-// 	return -1
-// }
-
+// it's this that's taking so long
+// can we append in place?
 func newSlice(slice []int, left, right int) []int {
+	if left < 0 && left != -1 {
+		panic(fmt.Sprintf("invalid number %d", left))
+	}
 	if left == -1 {
 		left = 0
-		//		return slice[0:getIdx(slice, right)]
-		// from beginning
 	} else if right == -1 {
 		right = len(slice)
-		//		return slice[getIdx(slice, left):]
-		// from idx to end
 	}
 
 	var ret []int
 	for i := left; i < right; i++ {
+		if i%len(slice) < 0 {
+			log.Println(left, right, slice)
+		}
 		ret = append(ret, slice[i%len(slice)])
 	}
 	return ret
+}
+
+type inPlaceSlice struct {
+	data []int
+}
+
+func (s *inPlaceSlice) getIndices(left, right int) []int {
+	if left < 0 && left != -1 {
+		panic(fmt.Sprintf("invalid number %d", left))
+	}
+	// TODO kill these two...
+	if left == -1 {
+		left = 0
+	} else if right == -1 {
+		right = len(s.data)
+	}
+
+	ret := make([]int, right-left)
+	for i := left; i < right; i++ {
+		idx := i - left
+		ret[idx] = i % len(s.data)
+	}
+	return ret
+}
+
+func (s *inPlaceSlice) get(idx int) int {
+	return s.data[idx%len(s.data)]
+}
+
+func (s *inPlaceSlice) clone(r ...[2]int) *inPlaceSlice {
+	//	log.Println(r)
+	ret := make([]int, len(s.data))
+	idx := 0
+	for _, rr := range r {
+		for i := rr[0]; i < rr[1]; i++ {
+			//			log.Println(s.get(i))
+			ret[idx] = s.get(i)
+			idx++
+		}
+	}
+	if idx != len(s.data) {
+		log.Fatalf("invalid clone. ended up with up to index %d", idx)
+	}
+	return &inPlaceSlice{data: ret}
 }
