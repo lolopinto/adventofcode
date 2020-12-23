@@ -7,7 +7,7 @@ import (
 func day23() {
 	lines := readFile("day23input")
 
-	count := 1000000
+	count := 1_000_000
 	numbers := make([]int, count)
 
 	for i, c := range lines[0] {
@@ -21,7 +21,7 @@ func day23() {
 
 	m, currentNode := buildNodes(numbers)
 
-	for i := 1; i <= 10000000; i++ {
+	for i := 1; i <= 10_000_000; i++ {
 
 		destination := currentNode.num - 1
 		var destinationNode *crabNode
@@ -56,25 +56,19 @@ func day23() {
 		currentNode = currentNode.next
 	}
 
-	n := currentNode
-	for {
-		//		log.Println(n.num)
-		// part 1
-		if n.num == 1 {
-			// var sb strings.Builder
-			// n = n.next
-			// for n.num != 1 {
-			// 	sb.WriteString(fmt.Sprintf("%v", n.num))
-			// 	n = n.next
-			// }
-			// log.Println(sb.String())
+	//		log.Println(n.num)
+	// part 1
+	n := m[1]
+	// var sb strings.Builder
+	// n = n.next
+	// for n.num != 1 {
+	// 	sb.WriteString(fmt.Sprintf("%v", n.num))
+	// 	n = n.next
+	// }
+	// log.Println(sb.String())
 
-			// part 2
-			log.Println(n.next.num * n.next.next.num)
-			break
-		}
-		n = n.next
-	}
+	// part 2
+	log.Println(n.next.num * n.next.next.num)
 
 }
 
