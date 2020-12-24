@@ -79,33 +79,26 @@ func eachDayChange(coords map[point2]int) map[point2]int {
 		for _, dir := range directions {
 			pt2 := pt.clone()
 			applyDir(&pt2, dir)
-			v2, ok := adjBlack[pt2]
-			if !ok {
-				v2 = 0 //white
-			}
-			adjBlack[pt2] = v2 + 1
+			ctBlack := adjBlack[pt2]
+			adjBlack[pt2] = ctBlack + 1
 		}
 	}
 
 	for pt, v := range coords {
+		ctBlack := adjBlack[pt]
 		if v%2 == 1 {
-			ctBlack, ok := adjBlack[pt]
-			if !ok {
-				ctBlack = 0
-			}
 			if ctBlack == 0 || ctBlack > 2 {
+				//				coords2[pt] = ctBlack + 1
 			} else {
 				coords2[pt] = 1
 			}
 		}
 	}
 
+	// any white tile with exactly 2 black tiles immediately adjacent flipped
 	for pt, v := range adjBlack {
 		if v == 2 {
-			ctBlack, ok := coords[pt]
-			if !ok {
-				ctBlack = 0
-			}
+			ctBlack := coords[pt]
 			if ctBlack%2 == 0 {
 				coords2[pt] = 1
 			}
@@ -124,38 +117,6 @@ func day24() {
 	for i := 1; i <= 100; i++ {
 		coords2 := eachDayChange(base)
 
-		// 	v, ok := coords[pt2]
-		// 	if !ok {
-		// 		v = 0 //white
-		// 	}
-		// 	if v%2 == 1 {
-		// 		ctBlack++
-		// 	} else {
-		// 		//					ctWhite++
-		// 	}
-		// }
-
-		// black
-		// 	if v%2 == 1 {
-		// 		if ctBlack == 0 || ctBlack > 2 {
-		// 			// flip to white
-		// 			//coords2[pt] = v - 1
-		// 		} else {
-		// 			coords2[pt] = 1
-		// 		}
-		// 	} else {
-		// 		if ctBlack == 2 {
-		// 			coords2[pt] = v + 1
-		// 		} else {
-		// 			coords2[pt] = v
-		// 		}
-		// 	}
-
-		// 	for k,v := range adjBlack {
-		// 		if v %2 == 0 &&
-		// 	}
-		// }
-
 		count := 0
 		for _, v := range coords2 {
 			if v%2 == 1 {
@@ -165,7 +126,4 @@ func day24() {
 		base = coords2
 		log.Println("day", i, "count", count)
 	}
-
-	// day 1
-
 }
