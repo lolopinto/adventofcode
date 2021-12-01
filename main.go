@@ -1,7 +1,6 @@
 package main
 
-import "fmt"
-
 func main() {
-	fmt.Println("hello")
+	//day1part1()
+	day1()
 }
