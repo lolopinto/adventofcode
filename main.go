@@ -1,6 +1,6 @@
 package main
 
 func main() {
-	//day3part1()
-	day3()
+	//day4part1()
+	day4()
 }
