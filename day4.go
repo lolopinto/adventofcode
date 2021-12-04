@@ -35,24 +35,25 @@ func day4() {
 			c = 0
 		}
 	}
-	//	fmt.Println(grids)
 
 	drawn := make(map[int]bool)
+	boardswon := make(map[int]bool)
 	for _, num := range csv {
-		//		drawn = append(drawn, num)
 		drawn[num] = true
-		for _, grid := range grids {
+		for gridindex, grid := range grids {
 			b, sum := checkBoard(grid, drawn)
-			if b {
-				fmt.Println(sum * num)
-				os.Exit(0)
+			if b && !boardswon[gridindex] {
+				boardswon[gridindex] = true
+				if len(boardswon) == len(grids) {
+					fmt.Println(sum * num)
+					os.Exit(0)
+				}
 			}
 		}
 	}
 }
 
 func checkBoard(grid [][]int, drawn map[int]bool) (bool, int) {
-
 	marked := false
 	for r := 0; r < 5; r++ {
 		maybemarked := true
@@ -98,9 +99,5 @@ func checkBoard(grid [][]int, drawn map[int]bool) (bool, int) {
 	}
 
 	return false, 0
-
-}
-
-func day4part1() {
 
 }
