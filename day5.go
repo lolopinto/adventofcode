@@ -46,65 +46,39 @@ func convertToCoords(p []string) coord {
 }
 
 func markGrid(grid [][]int, start, end coord) {
-	// x equal
-	if start.x == end.x {
-		if start.y < end.y {
-			// going up
-			for i := start.y; i <= end.y; i++ {
-				grid[start.x][i] += 1
-			}
+	minx := min([]int{start.x, end.x})
+	maxx := max([]int{start.x, end.x})
+	miny := min([]int{start.y, end.y})
+	maxy := max([]int{start.y, end.y})
 
-		} else {
-			// going down
-			for i := start.y; i >= end.y; i-- {
-				grid[start.x][i] += 1
-			}
+	// keep y constant
+	if miny == maxy && minx != maxx {
+		for x := minx; x <= maxx; x++ {
+			grid[x][start.y] += 1
 		}
-	} else if start.y == end.y {
-		// y equal
-		if start.x < end.x {
-			for i := start.x; i <= end.x; i++ {
-				grid[i][start.y] += 1
-
-			}
-
-		} else {
-			for i := start.x; i >= end.x; i-- {
-				grid[i][start.y] += 1
-			}
+	} else if minx == maxx && miny != maxy {
+		// keep x constant
+		for y := miny; y <= maxy; y++ {
+			grid[start.x][y] += 1
 		}
 	} else {
-		// diagonal going up left
-		if end.y > start.y && end.x > start.x {
-			diff := end.x - start.x
-			for i := 0; i <= diff; i++ {
-				x := start.x + i
-				y := start.y + i
+		// diagonal
+		diff := maxx - minx
+		// default going up to the right
+		xdiff := 1
+		ydiff := 1
+		//going down
+		if start.x > end.x {
+			xdiff = -1
+		}
+		if start.y > end.y {
+			ydiff = -1
+		}
 
-				grid[x][y] += 1
-			}
-		} else if end.y < start.y && end.x < start.x {
-			// inverse from up
-			diff := start.x - end.x
-			for i := 0; i <= diff; i++ {
-				x := start.x - i
-				y := start.y - i
-				grid[x][y] += 1
-			}
-			// last 2 in opp directions
-
-		} else if end.x > start.x {
-			diff := end.x - start.x
-			for i := 0; i <= diff; i++ {
-				x := start.x + i
-				y := start.y - i
-				grid[x][y] += 1
-			}
-		} else {
-			diff := end.y - start.y
-			for i := 0; i <= diff; i++ {
-				x := start.x - i
-				y := start.y + i
+		for i := 0; i <= diff; i++ {
+			x := start.x + (i * xdiff)
+			y := start.y + (i * ydiff)
+			if x >= minx && x <= maxx && y >= miny && y <= maxy {
 				grid[x][y] += 1
 			}
 		}
