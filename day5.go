@@ -22,7 +22,6 @@ func day5() {
 		start := convertToCoords(strings.Split(parts[0], ","))
 		end := convertToCoords(strings.Split(parts[1], ","))
 		markGrid(grid, start, end)
-		//		fmt.Println(grid, start, end)
 	}
 	count := 0
 	for i := 0; i < length; i++ {
@@ -47,9 +46,6 @@ func convertToCoords(p []string) coord {
 }
 
 func markGrid(grid [][]int, start, end coord) {
-	if start.x != end.x && start.y != end.y {
-		return
-	}
 	// x equal
 	if start.x == end.x {
 		if start.y < end.y {
@@ -57,31 +53,60 @@ func markGrid(grid [][]int, start, end coord) {
 			for i := start.y; i <= end.y; i++ {
 				grid[start.x][i] += 1
 			}
-			//			fmt.Println("y going up", start.y)
 
 		} else {
 			// going down
 			for i := start.y; i >= end.y; i-- {
 				grid[start.x][i] += 1
-				//				fmt.Println("y going down", start.y)
-
 			}
 		}
-	} else {
+	} else if start.y == end.y {
 		// y equal
 		if start.x < end.x {
 			for i := start.x; i <= end.x; i++ {
 				grid[i][start.y] += 1
 
 			}
-			// fmt.Println("x going up", start.x, end.x)
-			// fmt.Println(grid)
 
 		} else {
 			for i := start.x; i >= end.x; i-- {
 				grid[i][start.y] += 1
 			}
-			//			fmt.Println("x going down", start.x)
+		}
+	} else {
+		// diagonal going up left
+		if end.y > start.y && end.x > start.x {
+			diff := end.x - start.x
+			for i := 0; i <= diff; i++ {
+				x := start.x + i
+				y := start.y + i
+
+				grid[x][y] += 1
+			}
+		} else if end.y < start.y && end.x < start.x {
+			// inverse from up
+			diff := start.x - end.x
+			for i := 0; i <= diff; i++ {
+				x := start.x - i
+				y := start.y - i
+				grid[x][y] += 1
+			}
+			// last 2 in opp directions
+
+		} else if end.x > start.x {
+			diff := end.x - start.x
+			for i := 0; i <= diff; i++ {
+				x := start.x + i
+				y := start.y - i
+				grid[x][y] += 1
+			}
+		} else {
+			diff := end.y - start.y
+			for i := 0; i <= diff; i++ {
+				x := start.x - i
+				y := start.y + i
+				grid[x][y] += 1
+			}
 		}
 	}
 }
