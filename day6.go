@@ -9,43 +9,29 @@ func day6() {
 	lines := readFile("day6input")
 	line := lines[0]
 	input := ints(strings.Split(line, ","))
+	counts := make(map[int]int)
+	// keep track of count
+	for _, v := range input {
+		counts[v] += 1
+	}
 
-	//	fmt.Println(input)
-	// dst := make([]int, len(input))
-	// copy(dst, input)
-	for i := 1; i <= 80; i++ {
-		var input2 []int
-		newLanternCt := 0
-		for _, num := range input {
-			num2 := num - 1
-			//			fmt.Println("num2", num2)
+	for i := 1; i <= 256; i++ {
+		newcounts := make(map[int]int)
+		for k, ct := range counts {
 
-			// if num2 == -1 {
-			// 	num2 = 6
-			// 	input2[len(input2)-1] = 8
-			// }
-			switch num2 {
-			case -1:
-				num2 = 6
-				//				newLantern = true
-				newLanternCt++
+			newkey := k - 1
+			if newkey == -1 {
+				newkey = 6
+				newcounts[8] += ct
 			}
-			input2 = append(input2, num2)
-
+			newcounts[newkey] += ct
 		}
-		for i := 0; i < newLanternCt; i++ {
-			input2 = append(input2, 8)
-		}
-		// sum := 0
-		// for _, num := range input2 {
-		// 	sum += num
-		// }
-		fmt.Println("day", i, len(input2))
-		// if i == 2 {
-		// 	fmt.Println(input2)
-		// }
 
-		input = make([]int, len(input2))
-		copy(input, input2)
+		sum := 0
+		for _, v := range newcounts {
+			sum += v
+		}
+		fmt.Println("day", i, sum)
+		counts = newcounts
 	}
 }
