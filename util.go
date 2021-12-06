@@ -4,12 +4,13 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 )
 
 func readFile(path string) []string {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
