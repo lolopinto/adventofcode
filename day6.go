@@ -18,7 +18,6 @@ func day6() {
 	for i := 1; i <= 256; i++ {
 		newcounts := make(map[int]int)
 		for k, ct := range counts {
-
 			newkey := k - 1
 			if newkey == -1 {
 				newkey = 6
