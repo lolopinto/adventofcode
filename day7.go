@@ -14,17 +14,16 @@ func day7() {
 	for i := range input {
 		sum := 0
 		for j := range input {
-			if i != j {
-				sum += int(math.Abs(float64(input[i] - input[j])))
-			}
+			diff := int(math.Abs(float64(input[j] - i)))
+			sum += ((diff * (diff + 1)) / 2)
 		}
 		m[i] = sum
 	}
-	leasst := math.MaxInt
+	least := math.MaxInt
 	for _, v := range m {
-		if v < leasst {
-			leasst = v
+		if v < least {
+			least = v
 		}
 	}
-	fmt.Println(leasst)
+	fmt.Println(least)
 }
