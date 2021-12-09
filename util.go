@@ -125,3 +125,27 @@ func die(err error) {
 		log.Fatal(err)
 	}
 }
+
+// permutations of a string
+func combos(s string) map[string]bool {
+	ret := make(map[string]bool)
+	adder := func(s2 string) {
+		ret[s2] = true
+		//		ret = append(ret, s2)
+	}
+	combo_helper([]rune(s), adder, 0)
+	return ret
+}
+
+func combo_helper(r []rune, adder func(s string), i int) {
+	if i > len(r) {
+		adder(string(r))
+		return
+	}
+	combo_helper(r, adder, i+1)
+	for j := i + i; j < len(r); j++ {
+		r[i], r[j] = r[j], r[i]
+		combo_helper(r, adder, i+1)
+		r[i], r[j] = r[j], r[i]
+	}
+}
