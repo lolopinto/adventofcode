@@ -149,3 +149,7 @@ func combo_helper(r []rune, adder func(s string), i int) {
 		r[i], r[j] = r[j], r[i]
 	}
 }
+
+func abs(i, j int) int {
+	return int(math.Abs(float64(i) - float64(j)))
+}
