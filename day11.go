@@ -1,55 +1,48 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-type data struct {
-	flashed bool
-	value   int
-}
+	"github.com/lolopinto/adventofcode2020/grid"
+)
 
 func day11() {
 	lines := readFile("day11input")
 
+	g := grid.NewIntGrid(lines)
 	length := len(lines)
-
-	// convert to int and set it
-	input := make([][]data, length)
-	for i := 0; i < length; i++ {
-		input[i] = make([]data, length)
-		for j := 0; j < length; j++ {
-			input[i][j] = data{
-				value: convToNum(rune(lines[i][j])),
-			}
-		}
-	}
 
 	flashct := 0
 	iterations := 0
 	for {
 		for r := 0; r < length; r++ {
 			for c := 0; c < length; c++ {
-				if input[r][c].flashed {
+				currData := g.At(r, c)
+
+				if currData.Visited {
 					continue
 				}
 
-				input[r][c].value += 1
-				val := input[r][c].value
+				val := currData.Int() + 1
+				currData.SetValue(val)
 				if val > 9 {
-					flashct += flash(&input, r, c, length)
+					ct := flash(g, r, c, length)
+					if iterations < 100 {
+						flashct += ct
+					}
 				}
 			}
 		}
 
-		inputcopy := make([][]data, length)
+		g2 := grid.NewGrid(length)
 		allzero := 0
-		for i := 0; i < length; i++ {
-			inputcopy[i] = make([]data, length)
 
+		// copy values. keep visited false
+		for i := 0; i < length; i++ {
 			for j := 0; j < length; j++ {
-				inputcopy[i][j] = data{
-					value: input[i][j].value,
-				}
-				if input[i][j].value == 0 {
+				val := g.At(i, j).Int()
+				g2.At(i, j).SetValue(val)
+				if val == 0 {
 					allzero++
 				}
 			}
@@ -61,60 +54,37 @@ func day11() {
 			break
 		}
 		iterations++
-		input = inputcopy
+		g = g2
 	}
 	// part1
-	//	fmt.Println(flashct)
+	fmt.Println(flashct)
 }
 
-func flash(d *[][]data, r, c, length int) int {
-	d2 := *d
+func flash(g *grid.Grid, r, c, length int) int {
 
-	if d2[r][c].flashed {
+	data := g.At(r, c)
+	if data.Visited {
 		return 0
 	}
-	d2[r][c].flashed = true
-	d2[r][c].value = 0
+	data.Visited = true
+	data.SetValue(0)
 
 	ct := 1
-	adj := getAllAdjacent(r, c, length)
 
-	for _, pos := range adj {
+	for _, pos := range g.Neighbors8(r, c) {
 		// already flashed. nothing to do here
-		if d2[pos.r][pos.c].flashed {
+		neighbor := g.At(pos.Row, pos.Column)
+		if neighbor.Visited {
 			continue
 		}
 
-		d2[pos.r][pos.c].value += 1
-		val := d2[pos.r][pos.c].value
+		val := neighbor.Int() + 1
+		neighbor.SetValue(val)
 
 		if val > 9 {
-			ct += flash(d, pos.r, pos.c, length)
+			ct += flash(g, pos.Row, pos.Column, length)
 		}
 	}
 
 	return ct
-}
-
-type p struct {
-	r, c int
-}
-
-func getAllAdjacent(r, c, length int) []p {
-	var ret []p
-
-	for i := -1; i < 2; i++ {
-		for j := -1; j < 2; j++ {
-			if i == 0 && j == 0 {
-				continue
-			}
-			newR := r + i
-			newC := c + j
-			if newR >= 0 && newR < length && newC >= 0 && newC < length {
-				ret = append(ret, p{newR, newC})
-			}
-		}
-	}
-
-	return ret
 }
