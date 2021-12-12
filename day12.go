@@ -8,6 +8,7 @@ import (
 func day12() {
 	lines := readFile("day12input")
 	nodes := make(map[string]*node)
+	//	neighbors := make
 	for _, line := range lines {
 		parts := strings.Split(line, "-")
 		parseNode(parts[0], nodes)
@@ -15,107 +16,44 @@ func day12() {
 		addNeighbors(parts[0], parts[1], nodes)
 	}
 
-	var q [][]string
-	for _, neighbor := range nodes["start"].neighbors {
-		q = append(q, []string{"start", neighbor.node})
-	}
-
-	uniquepaths := make(map[string]bool)
-	for len(q) > 0 {
-		var q2 [][]string
-		for i := 0; i < len(q); i++ {
-			poss := q[i]
-
-			lastIdx := len(poss) - 1
-			last := poss[lastIdx]
-			paths := nodes[last].possiblesPaths()
-			//			fmt.Println(len(paths))
-			for _, p := range paths {
-				newPoss := append(poss[:lastIdx], p...)
-				if !checkValid(newPoss) {
-					continue
-				}
-				l := len(newPoss)
-				if newPoss[l-1] == "end" {
-					// the end
-					uniquepaths[strings.Join(newPoss, ",")] = true
-				} else {
-					q2 = append(q2, newPoss)
-				}
-			}
-		}
-		q = q2
-	}
-	//	fmt.Println(uniquepaths)
-	fmt.Println(len(uniquepaths))
+	fmt.Println(checkPaths([]string{"start"}, nodes, false))
 }
 
-func checkValid(path []string) bool {
-	visited := make(map[string]int)
-	smallcttwice := 0
-	l := len(path)
-	for i, v := range path {
-		if v == "end" && i != l-1 {
-			return false
-		}
-		// lower
-		if strings.ToLower(v) == v {
-			visited[v] += 1
-			ct := visited[v]
-
-			if ct != 1 {
-				if v == "start" || v == "end" {
-					return false
-				} else {
-					if ct > 2 {
-						return false
-					}
-					if ct == 2 {
-						smallcttwice++
-					}
-				}
-			}
+func contains(haystack []string, needle string) bool {
+	for _, s := range haystack {
+		if s == needle {
+			return true
 		}
 	}
-	return smallcttwice < 2
+	return false
+}
+
+func checkPaths(l []string, nodes map[string]*node, visited bool) int {
+	count := 0
+	lastIdx := len(l) - 1
+	last := l[lastIdx]
+
+	if last == "end" {
+		return 1
+	}
+
+	for _, neighbor := range nodes[last].neighbors {
+		// can check for upper or for something not yet visited
+		if strings.ToUpper(neighbor.node) == neighbor.node || !contains(l, neighbor.node) {
+			count += checkPaths(append(l, neighbor.node), nodes, visited)
+		}
+
+		if !visited && neighbor.node != "start" && neighbor.node != "end" && strings.ToLower(neighbor.node) == neighbor.node && contains(l, neighbor.node) {
+			count += checkPaths(append(l, neighbor.node), nodes, true)
+		}
+	}
+
+	return count
 }
 
 type node struct {
 	node      string
 	neighbors []*node
-	pp        [][]string
-}
-
-func (n *node) possiblesPaths() [][]string {
-	if n.pp != nil {
-		return n.pp
-	}
-	var ret [][]string
-	for _, neighbor := range n.neighbors {
-
-		tmp := []string{n.node, neighbor.node}
-		if !checkValid(tmp) {
-			continue
-		}
-		ret = append(ret, tmp)
-		for _, n2 := range neighbor.neighbors {
-			tmp := []string{n.node, neighbor.node, n2.node}
-			if !checkValid(tmp) {
-				continue
-			}
-			ret = append(ret, tmp)
-			for _, n3 := range n2.neighbors {
-				tmp := []string{n.node, neighbor.node, n2.node, n3.node}
-				if !checkValid(tmp) {
-					continue
-				}
-				ret = append(ret, tmp)
-			}
-		}
-	}
-
-	n.pp = ret
-	return ret
 }
 
 func parseNode(part string, nodes map[string]*node) {
