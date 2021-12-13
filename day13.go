@@ -9,30 +9,38 @@ import (
 )
 
 func day13() {
-	//	lines := readFile("day13input")
 	chunks := readFileChunks("day13input", 2)
 
-	// TODO get max and do this instead of hardcoding
-	width := 1311
-	g := grid.NewGrid(width)
-
-	for _, line := range chunks[0] {
+	rows := make([]int, len(chunks[0]))
+	cols := make([]int, len(chunks[0]))
+	for i, line := range chunks[0] {
 		parts := strings.Split(line, ",")
-		c := atoi(parts[0])
-		r := atoi(parts[1])
-		// set dot
-		g.At(r, c).SetValue('.')
+		cols[i] = atoi(parts[0])
+		rows[i] = atoi(parts[1])
 	}
 
-	// first fold
-	first := chunks[1][0]
-	g2 := fold(g, first)
-	fmt.Println(countDots(g2))
+	maxWidth := max(rows)
+	maxHeight := max(cols)
+	g := grid.NewRectGrid(maxWidth+1, maxHeight+1)
 
-	// second := chunks[1][1]
-	// g3 := fold(g2, second)
-	// fmt.Println(countDots(g3))
+	for i := range rows {
+		// set dot
+		g.At(rows[i], cols[i]).SetValue('.')
+	}
 
+	for _, ins := range chunks[1] {
+		g2 := fold(g, ins)
+		fmt.Println(countDots(g2))
+		g = g2
+	}
+
+	// print . when nothing there and # when a dot
+	g.Print(func(val interface{}) string {
+		if val == nil {
+			return "."
+		}
+		return "#"
+	})
 }
 
 var foldRegex = regexp.MustCompile(`(y|x)=(\d+)`)
@@ -46,14 +54,14 @@ func fold(g *grid.Grid, fold string) *grid.Grid {
 	dir := match[1]
 	pos := atoi(match[2])
 
-	// don't change length for now. optimization exists here
-	g2 := grid.NewGrid(g.Length)
 	if dir == "y" {
 		// folding up
+		g2 := grid.NewRectGrid(g.XLength/2, g.YLength)
 
-		last := g.Length - 1
+		last := g.XLength - 1
 		for i := 0; i < pos; i++ {
-			for j := 0; j < g.Length; j++ {
+			// keeping this axis
+			for j := 0; j < g.YLength; j++ {
 				first := g.At(i, j).Data()
 				second := g.At(last-i, j).Data()
 				if first == '.' || second == '.' {
@@ -61,9 +69,13 @@ func fold(g *grid.Grid, fold string) *grid.Grid {
 				}
 			}
 		}
+		return g2
 	} else {
-		last := g.Length - 1
-		for i := 0; i < g.Length; i++ {
+		// folding left
+		g2 := grid.NewRectGrid(g.XLength, g.YLength/2)
+
+		last := g.YLength - 1
+		for i := 0; i < g.XLength; i++ {
 			for j := 0; j < pos; j++ {
 				first := g.At(i, j).Data()
 				second := g.At(i, last-j).Data()
@@ -72,15 +84,14 @@ func fold(g *grid.Grid, fold string) *grid.Grid {
 				}
 			}
 		}
+		return g2
 	}
-
-	return g2
 }
 
 func countDots(g *grid.Grid) int {
 	ct := 0
-	for i := 0; i < g.Length; i++ {
-		for j := 0; j < g.Length; j++ {
+	for i := 0; i < g.XLength; i++ {
+		for j := 0; j < g.YLength; j++ {
 			if g.At(i, j).Data() == '.' {
 				ct++
 			}

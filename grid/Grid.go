@@ -1,8 +1,10 @@
 package grid
 
 import (
+	"fmt"
 	"log"
 	"strconv"
+	"strings"
 )
 
 func NewGrid(length int) *Grid {
@@ -14,8 +16,25 @@ func NewGrid(length int) *Grid {
 		}
 	}
 	return &Grid{
-		Length: length,
-		data:   data,
+		Length:  length,
+		XLength: length,
+		YLength: length,
+		data:    data,
+	}
+}
+
+func NewRectGrid(xLength, yLength int) *Grid {
+	data := make([][]*Data, xLength)
+	for i := 0; i < xLength; i++ {
+		data[i] = make([]*Data, yLength)
+		for j := 0; j < yLength; j++ {
+			data[i][j] = &Data{}
+		}
+	}
+	return &Grid{
+		XLength: xLength,
+		YLength: yLength,
+		data:    data,
 	}
 }
 
@@ -43,7 +62,10 @@ func NewIntGrid(lines []string) *Grid {
 
 type Grid struct {
 	Length int
-	data   [][]*Data
+
+	XLength int
+	YLength int
+	data    [][]*Data
 }
 
 func (g *Grid) At(r, c int) *Data {
@@ -80,13 +102,24 @@ func (g *Grid) Neighbors8(r, c int) []Pos {
 			}
 			newR := r + i
 			newC := c + j
-			if newR >= 0 && newR < g.Length && newC >= 0 && newC < g.Length {
+			if newR >= 0 && newR < g.XLength && newC >= 0 && newC < g.YLength {
 				ret = append(ret, Pos{Row: newR, Column: newC})
 			}
 		}
 	}
 
 	return ret
+}
+
+func (g *Grid) Print(fn func(val interface{}) string) {
+	for i := 0; i < g.XLength; i++ {
+		var sb strings.Builder
+		for j := 0; j < g.YLength; j++ {
+			val := g.data[i][j]
+			sb.WriteString(fn(val.data))
+		}
+		fmt.Println(sb.String())
+	}
 }
 
 type Data struct {
