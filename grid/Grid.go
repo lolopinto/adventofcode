@@ -99,6 +99,10 @@ func (d *Data) Int() int {
 	return d.data.(int)
 }
 
+func (d *Data) Data() interface{} {
+	return d.data
+}
+
 func (d *Data) SetValue(val interface{}) {
 	d.data = val
 }
