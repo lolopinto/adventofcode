@@ -25,13 +25,9 @@ func day14() {
 
 	// set up initial input
 	data := make(map[string]int64)
-	// need to keep track of last to add
-	// go's map is unordered so can't use that
-	var last string
 	for i := 0; i < len(input)-1; i++ {
 		two := input[i : i+2]
 		data[two] += 1
-		last = two
 	}
 	//	fmt.Println(data)
 
@@ -42,21 +38,20 @@ func day14() {
 				data2[v2] += v
 			}
 		}
-		last = m[last][1]
 		data = data2
 	}
 
 	//	fmt.Println(data, last)
-	fmt.Println(getCount(data, last))
+	fmt.Println(getCount(data, input))
 }
 
-func getCount(data map[string]int64, last string) int64 {
+func getCount(data map[string]int64, input string) int64 {
 	ct := make(map[rune]int64)
 	for k, v := range data {
 		ct[rune(k[0])] += v
 	}
 	// add last character from last
-	ct[rune(last[1])] += 1
+	ct[rune(input[len(input)-1])] += 1
 
 	var vals []int64
 	for _, v := range ct {
