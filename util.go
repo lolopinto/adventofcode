@@ -104,7 +104,6 @@ func min(slice []int) int {
 			min = val
 		}
 	}
-	//log.Println("min", min)
 	return min
 }
 
@@ -115,8 +114,28 @@ func max(slice []int) int {
 			max = val
 		}
 	}
-	//	log.Println("max", max)
+	return max
+}
 
+func min64(slice []int64) int64 {
+	var min int64
+	min = math.MaxInt64
+	for _, val := range slice {
+		if val < min {
+			min = val
+		}
+	}
+	return min
+}
+
+func max64(slice []int64) int64 {
+	var max int64
+	max = math.MinInt64
+	for _, val := range slice {
+		if val > max {
+			max = val
+		}
+	}
 	return max
 }
 
