@@ -78,13 +78,13 @@ func (g *Grid) Neighbors(r, c int) []Pos {
 	if r-1 >= 0 {
 		ret = append(ret, Pos{Row: r - 1, Column: c})
 	}
-	if r+1 < g.Length {
+	if r+1 < g.XLength {
 		ret = append(ret, Pos{Row: r + 1, Column: c})
 	}
 	if c-1 >= 0 {
 		ret = append(ret, Pos{Row: r, Column: c - 1})
 	}
-	if c+1 < g.Length {
+	if c+1 < g.YLength {
 		ret = append(ret, Pos{Row: r, Column: c + 1})
 	}
 
@@ -93,11 +93,11 @@ func (g *Grid) Neighbors(r, c int) []Pos {
 
 func (g *Grid) RightAndDownNeighbors(r, c int) []Pos {
 	var ret []Pos
-	if r+1 < g.Length {
+	if r+1 < g.XLength {
 		ret = append(ret, Pos{Row: r + 1, Column: c})
 	}
 
-	if c+1 < g.Length {
+	if c+1 < g.YLength {
 		ret = append(ret, Pos{Row: r, Column: c + 1})
 	}
 
