@@ -14,11 +14,8 @@ func day15() {
 	g := grid.NewIntGrid(lines)
 
 	// part2
-	//	g = transformGrid(g)
+	g = transformGrid(g)
 	// not visited, and infinity
-
-	// mins := grid.NewRectGrid(g.XLength, g.YLength)
-	// mins.At(0, 0).SetValue(0)
 
 	makeKey := func(i, j int) string {
 		return fmt.Sprintf("%d-%d", i, j)
@@ -26,6 +23,7 @@ func day15() {
 	// initialize queue
 	q := make(map[string]bool)
 	mins := make(map[string]int)
+	unvisitedmins := make(map[string]bool)
 
 	for i := 0; i < g.XLength; i++ {
 		for j := 0; j < g.YLength; j++ {
@@ -36,21 +34,12 @@ func day15() {
 	// set initial
 	mins[makeKey(0, 0)] = 0
 
-	// fmt.Println(mins.XLength * mins.YLength)
-	// fmt.Println(len(q))
-
 	currPos := &grid.Pos{Row: 0, Column: 0}
-	//	lastMin := math.MaxInt
-	//	ct := 0
 	for len(q) > 0 {
-		//		fmt.Println(mins)
-		//		ct++
-		//		fmt.Println(currPos.Row, currPos.Column, ct)
 		neighbors := g.Neighbors(currPos.Row, currPos.Column)
 		// there should be something if we're visiting it...
 		key := makeKey(currPos.Row, currPos.Column)
 		currVal := mins[key]
-		//		currVal := mins.At(currPos.Row, currPos.Column).Int()
 
 		for _, v := range neighbors {
 			neigh := g.At(v.Row, v.Column)
@@ -59,24 +48,19 @@ func day15() {
 			}
 			neighVal := g.At(v.Row, v.Column).Int()
 			newMin := currVal + neighVal
-			//			fmt.Println("newMin", newMin)
 
 			neighKey := makeKey(v.Row, v.Column)
 			neighMin := mins[neighKey]
-			//			neigh := mins.At(v.Row, v.Column)
 
 			if neighMin == 0 || newMin < neighMin {
-				//				fmt.Println("changing min value", )
-				// neighMin, ok := neigh.Data().(int)
-				// if !ok || newMin < neighMin {
 				mins[neighKey] = newMin
-				//				neigh.SetValue(newMin)
+				unvisitedmins[neighKey] = true
 			}
 		}
 
 		// mark visited
 		delete(q, key)
-		//		delete(mins, key)
+		delete(unvisitedmins, key)
 		g.At(currPos.Row, currPos.Column).Visited = true
 
 		if currPos.Row == g.XLength && currPos.Column == g.YLength {
@@ -85,21 +69,17 @@ func day15() {
 
 		var newCurrPos *grid.Pos
 		min := math.MaxInt
-		//		currPos
-		for k, v := range mins {
-			// if !q[k] {
-			// 	continue
-			// }
+		for k := range unvisitedmins {
+			v := mins[k]
+			if v == 0 {
+				continue
+			}
 			parts := strings.Split(k, "-")
 			r := atoi(parts[0])
 			c := atoi(parts[1])
 			if g.At(r, c).Visited {
 				continue
 			}
-			// v, ok := mins.At(r, c).Data().(int)
-			// if !ok {
-			// 	continue
-			// }
 			if v < min {
 				min = v
 				newCurrPos = &grid.Pos{Row: r, Column: c}
@@ -109,13 +89,9 @@ func day15() {
 			currPos = newCurrPos
 			continue
 		}
-		// done
-
-		//		fmt.Println("the end", currPos, len(mins), len(q))
 	}
 
 	lastKey := makeKey(g.XLength-1, g.YLength-1)
-	//	last := mins.At(g.XLength-1, g.YLength-1).Int()
 	fmt.Println(mins[lastKey])
 }
 
