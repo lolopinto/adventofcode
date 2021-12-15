@@ -91,6 +91,19 @@ func (g *Grid) Neighbors(r, c int) []Pos {
 	return ret
 }
 
+func (g *Grid) RightAndDownNeighbors(r, c int) []Pos {
+	var ret []Pos
+	if r+1 < g.Length {
+		ret = append(ret, Pos{Row: r + 1, Column: c})
+	}
+
+	if c+1 < g.Length {
+		ret = append(ret, Pos{Row: r, Column: c + 1})
+	}
+
+	return ret
+}
+
 // returns up to 8 neighbors including diagonals
 func (g *Grid) Neighbors8(r, c int) []Pos {
 	var ret []Pos
