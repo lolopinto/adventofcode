@@ -11,8 +11,12 @@ import (
 func day15() {
 	lines := readFile("day15input")
 	g := grid.NewIntGrid(lines)
+
+	// part2
+	g = transformGrid(g)
 	// not visited, and infinity
-	mins := grid.NewGrid(g.Length)
+
+	mins := grid.NewRectGrid(g.XLength, g.YLength)
 	mins.At(0, 0).SetValue(0)
 
 	makeKey := func(i, j int) string {
@@ -20,8 +24,8 @@ func day15() {
 	}
 	// initialize queue
 	q := make(map[string]bool)
-	for i := 0; i < g.Length; i++ {
-		for j := 0; j < g.Length; j++ {
+	for i := 0; i < g.XLength; i++ {
+		for j := 0; j < g.YLength; j++ {
 			k := makeKey(i, j)
 			q[k] = true
 		}
@@ -80,4 +84,81 @@ func day15() {
 
 	last := mins.At(g.XLength-1, g.YLength-1).Int()
 	fmt.Println(last)
+}
+
+// part 2
+func transformGrid(g *grid.Grid) *grid.Grid {
+	// get 1st row
+	var r1 []*grid.Grid
+	r1 = append(r1, g)
+	for i := 0; i < 4; i++ {
+		g2 := transform1Grid(g)
+
+		r1 = append(r1, g2)
+		g = g2
+	}
+
+	var r2 []*grid.Grid
+	for i := 0; i < 5; i++ {
+		g2 := transform1Grid(r1[i])
+		r2 = append(r2, g2)
+	}
+
+	var r3 []*grid.Grid
+	for i := 0; i < 5; i++ {
+		g2 := transform1Grid(r2[i])
+		r3 = append(r3, g2)
+	}
+
+	var r4 []*grid.Grid
+	for i := 0; i < 5; i++ {
+		g2 := transform1Grid(r3[i])
+		r4 = append(r4, g2)
+	}
+
+	var r5 []*grid.Grid
+	for i := 0; i < 5; i++ {
+		g2 := transform1Grid(r4[i])
+		r5 = append(r5, g2)
+	}
+
+	ret := grid.NewRectGrid(g.XLength*5, g.YLength*5)
+	rows := [][]*grid.Grid{
+		r1,
+		r2,
+		r3,
+		r4,
+		r5,
+	}
+	for i, row := range rows {
+		for j, g := range row {
+
+			for x := 0; x < g.XLength; x++ {
+				for y := 0; y < g.YLength; y++ {
+					val := g.At(x, y).Int()
+
+					xpos := i*10 + x
+					ypos := j*10 + y
+
+					ret.At(xpos, ypos).SetValue(val)
+				}
+			}
+		}
+	}
+
+	return ret
+}
+
+func transform1Grid(g *grid.Grid) *grid.Grid {
+	g2 := grid.NewRectGrid(g.XLength, g.YLength)
+	for r := 0; r < g.XLength; r++ {
+		for c := 0; c < g.YLength; c++ {
+			newVal := g.At(r, c).Int() + 1
+			if newVal == 10 {
+				newVal = 1
+			}
+			g2.At(r, c).SetValue(newVal)
+		}
+	}
+	return g2
 }
