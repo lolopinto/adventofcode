@@ -9,39 +9,46 @@ import (
 func day15() {
 	lines := readFile("day15input")
 	g := grid.NewIntGrid(lines)
-	// for the sums
-	sums := grid.NewGrid(g.Length)
+	mins := grid.NewGrid(g.Length)
 
 	for x := 0; x < g.XLength; x++ {
 		for y := 0; y < g.YLength; y++ {
-			val := g.At(x, y).Int()
-			sumAt := sums.At(x, y)
-			data, ok := sumAt.Data().([]int)
+			minAt := mins.At(x, y)
+			data, ok := minAt.Data().(int)
 			if !ok {
-				data = []int{val}
+				// min at entry point is 0
+				data = 0
 			}
 
 			neigh := g.RightAndDownNeighbors(x, y)
-			//			fmt.Println(x, y, len(neigh))
 			for _, pos := range neigh {
 
 				curr := g.At(pos.Row, pos.Column).Int()
 
-				d := sums.At(pos.Row, pos.Column)
-				data2, ok := d.Data().([]int)
-				if !ok {
-					data2 = []int{}
+				neighMin := mins.At(pos.Row, pos.Column)
+				neighVal, ok := neighMin.Data().(int)
+				if ok {
+					if data+curr < neighVal {
+						neighMin.SetValue(data + curr)
+					}
+				} else {
+					// first time
+					neighMin.SetValue(data + curr)
+					//					fmt.Println(pos.Row, pos.Column, data+curr)
 				}
-
-				for _, v := range data {
-					data2 = append(data2, v+curr)
-				}
-				d.SetValue(data2)
 			}
 		}
 	}
 
-	last := sums.At(9, 9).Data().([]int)
-	//	fmt.Println(len(last))
-	fmt.Println(min(last) - g.At(0, 0).Int())
+	last := mins.At(g.XLength-1, g.YLength-1).Int()
+	fmt.Println(last)
+
+	mins.Print(func(val interface{}) string {
+		if val == nil {
+			return leftPad("0 ", " ", 3)
+		}
+		return leftPad(fmt.Sprintf("%v ", val), " ", 4)
+	})
 }
+
+//404 too high
