@@ -32,7 +32,10 @@ func day16() {
 		sb.WriteString(m[c])
 	}
 	p := parsePacket(sb.String(), m)
+	// part 1
 	fmt.Println(sumVersions(p))
+	// part 2
+	fmt.Println(p.value())
 }
 
 func sumVersions(p *packet) int {
@@ -55,6 +58,62 @@ type packet struct {
 	packets       []*packet
 	initialString string
 	endIdx        int
+}
+
+func (p *packet) value() int {
+	switch p.id {
+	case 0:
+		sum := 0
+		for _, pp := range p.packets {
+			sum += pp.value()
+		}
+		return sum
+	case 1:
+		mult := 1
+		for _, pp := range p.packets {
+			mult *= pp.value()
+		}
+		return mult
+	case 2:
+		vals := make([]int, len(p.packets))
+		for i, pp := range p.packets {
+			vals[i] = pp.value()
+		}
+		return min(vals)
+	case 3:
+		vals := make([]int, len(p.packets))
+		for i, pp := range p.packets {
+			vals[i] = pp.value()
+		}
+		return max(vals)
+	case 4:
+		return p.literalvalue
+	case 5:
+		if len(p.packets) != 2 {
+			panic("invalid packet")
+		}
+		if p.packets[0].value() > p.packets[1].value() {
+			return 1
+		}
+		return 0
+	case 6:
+		if len(p.packets) != 2 {
+			panic("invalid packet")
+		}
+		if p.packets[0].value() < p.packets[1].value() {
+			return 1
+		}
+		return 0
+	case 7:
+		if len(p.packets) != 2 {
+			panic("invalid packet")
+		}
+		if p.packets[0].value() == p.packets[1].value() {
+			return 1
+		}
+		return 0
+	}
+	panic("invalid packet id")
 }
 
 func parsePacket(str string, m map[rune]string) *packet {
