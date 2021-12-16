@@ -52,9 +52,7 @@ func sumVersions(p *packet) int {
 type packet struct {
 	version       int
 	id            int
-	literal       bool
-	literalvalue  int
-	operator      bool
+	literal       int
 	packets       []*packet
 	initialString string
 	endIdx        int
@@ -87,7 +85,7 @@ func (p *packet) value() int {
 		}
 		return max(vals)
 	case 4:
-		return p.literalvalue
+		return p.literal
 	case 5:
 		if len(p.packets) != 2 {
 			panic("invalid packet")
@@ -124,12 +122,10 @@ func parsePacket(str string, m map[rune]string) *packet {
 		id:            convertToBinary(str[3:6]),
 		initialString: str,
 	}
-	//	fmt.Println("start version", ret.version, "id", ret.id, "literal", ret.literalvalue)
 
 	// literal
 	if ret.id == 4 {
 		i := 6
-		ret.literal = true
 		var sb strings.Builder
 		for i < len(str) {
 			first := rune(str[i])
@@ -139,25 +135,17 @@ func parsePacket(str string, m map[rune]string) *packet {
 			}
 			i += 5
 		}
-		ret.literalvalue = convertToBinary(sb.String())
+		ret.literal = convertToBinary(sb.String())
 		ret.endIdx = i + 5
 	} else {
-		ret.operator = true
 		//		fmt.Println("id", rune(str[6]))
 		// length type id
 		if rune(str[6]) == '0' {
-			//			fmt.Println("zero", str, len(str))
-			// length of subpackets
-			//			if end
-			//			fmt.Println("0 len str", len(str), str)
 			length := convertToBinary(str[7:22])
-			//			fmt.Println(str[7:22], length, len(str), str)
-			//			fmt.Println("length", length, str, str[7:22])
 			sub := str[22 : 22+length]
 			ret.endIdx = 22 + length
 
 			for {
-				//				fmt.Println("sub", sub)
 				if convertToBinary(sub) == 0 {
 					break
 				}
@@ -167,12 +155,10 @@ func parsePacket(str string, m map[rune]string) *packet {
 					sub = sub[p.endIdx:]
 				} else {
 					p := parsePacket(sub, m)
-					//					fmt.Println(sub)
 					if p == nil {
 						break
 					}
 					ret.packets = append(ret.packets, p)
-					//					fmt.Println("no literal", sub, p.endIdx)
 					sub = sub[p.endIdx:]
 				}
 			}
@@ -182,11 +168,10 @@ func parsePacket(str string, m map[rune]string) *packet {
 
 			num := convertToBinary(str[7:18])
 
-			//			fmt.Println("length to be subdivided", len(str[18:]), str[18:])
 			start := str[18:]
 			ret.endIdx = 18
 			for i := 0; i < num; i++ {
-				// need to return remnant from parsing...
+
 				if checkIfLiteral(start) {
 					p := parsePacket(start, m)
 					ret.endIdx += p.endIdx
