@@ -172,3 +172,15 @@ func combo_helper(r []rune, adder func(s string), i int) {
 func abs(i, j int) int {
 	return int(math.Abs(float64(i) - float64(j)))
 }
+
+func convertToBinary(line string) int {
+	res := make([]int, len(line))
+	for i, c := range line {
+		if c == '1' {
+			res[i] = 1
+		} else {
+			res[i] = 0
+		}
+	}
+	return binary(res)
+}

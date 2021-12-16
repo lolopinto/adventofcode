@@ -108,15 +108,3 @@ func leastcommon(m map[int]int) int {
 	}
 	return 1
 }
-
-func convertToBinary(line string) int {
-	res := make([]int, len(line))
-	for i, c := range line {
-		if c == '1' {
-			res[i] = 1
-		} else {
-			res[i] = 0
-		}
-	}
-	return binary(res)
-}
