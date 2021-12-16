@@ -92,6 +92,7 @@ func parsePacket(str string, m map[rune]string) *packet {
 			//			if end
 			//			fmt.Println("0 len str", len(str), str)
 			length := convertToBinary(str[7:22])
+			//			fmt.Println(str[7:22], length, len(str), str)
 			//			fmt.Println("length", length, str, str[7:22])
 			sub := str[22 : 22+length]
 			ret.endIdx = 22 + length
@@ -102,9 +103,9 @@ func parsePacket(str string, m map[rune]string) *packet {
 					break
 				}
 				if checkIfLiteral(sub) {
-					p := parsePacket(sub[0:11], m)
+					p := parsePacket(sub, m)
 					ret.packets = append(ret.packets, p)
-					sub = sub[11:]
+					sub = sub[p.endIdx:]
 				} else {
 					p := parsePacket(sub, m)
 					//					fmt.Println(sub)
@@ -128,10 +129,10 @@ func parsePacket(str string, m map[rune]string) *packet {
 			for i := 0; i < num; i++ {
 				// need to return remnant from parsing...
 				if checkIfLiteral(start) {
-					p := parsePacket(start[0:11], m)
+					p := parsePacket(start, m)
 					ret.endIdx += p.endIdx
 					ret.packets = append(ret.packets, p)
-					start = start[11:]
+					start = start[p.endIdx:]
 
 				} else {
 					p := parsePacket(start, m)
