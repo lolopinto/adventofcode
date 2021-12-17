@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"strings"
 )
 
@@ -10,24 +9,25 @@ func day17() {
 	input := readFile("day17input")[0]
 	input = strings.TrimPrefix(input, "target area: ")
 	parts := strings.Split(input, ", ")
-	// x,y flipped
 	minx, maxx := parseParts(parts[0])
 	miny, maxy := parseParts(parts[1])
-	//	fmt.Println(minx, maxx, miny, maxy)
-	// what's the range to check??
-	result := math.MinInt
-	for i := 0; i < minx; i++ {
-		for j := maxy; j < 10000; j++ {
+	//	result := math.MinInt
+	ct := 0
+	for i := 0; i <= maxx; i++ {
+		// what's the right range here lol?
+		for j := miny; j < 10000; j++ {
 			high := move(i, j, minx, maxx, miny, maxy)
-			if high > result {
-				result = high
+			if high {
+				ct++
 			}
+			// part 1
+			// if high > result {
+			// 	result = high
+			// }
 		}
 	}
-	// 7,2 and 6,9 correct
-	// high := move(17, -4, minx, maxx, miny, maxy)
-	// fmt.Println(high)
-	fmt.Println(result)
+	//	fmt.Println(result)
+	fmt.Println(ct)
 }
 
 func parseParts(s string) (int, int) {
@@ -36,33 +36,30 @@ func parseParts(s string) (int, int) {
 	return atoi(parts[0]), atoi(parts[1])
 }
 
-func move(startx, starty, minx, maxx, miny, maxy int) int {
+func move(startx, starty, minx, maxx, miny, maxy int) bool {
 	x, y := 0, 0
-	//	i := 0
-	highesty := math.MinInt
-	//	startx +=x
-	hittarget := false
-	for {
+
+	//	highesty := math.MinInt
+
+	//
+	for i := 0; i < 1000; i++ {
 		x += startx
 		y += starty
 
-		if y > highesty {
-			highesty = y
-		}
+		// if y > highesty {
+		// 	highesty = y
+		// }
 		//		fmt.Println(x, y)
 
 		if x >= minx && x <= maxx && y >= miny && y <= maxy {
-			// target area or didn't find
-			hittarget = true
-			//			fmt.Println("here")
-			break
+			return true
 		}
 
-		// didn't hit
-		if x > maxx || y < miny {
-			//			fmt.Println("here2")
-			break
-		}
+		// what's the right logic here? does it matter?
+		// if x > maxx || y < miny {
+		// 	//			fmt.Println("here2")
+		// 	//			break
+		// }
 		if startx > 0 {
 			startx -= 1
 		} else if startx < 0 {
@@ -70,15 +67,10 @@ func move(startx, starty, minx, maxx, miny, maxy int) int {
 		}
 		starty -= 1
 	}
-	//	newx :=
-	// 0,0 => 7,2 => 6,1 => 5,0 => 4,-1 => 3,-2, 2,-3 =>1,-4
-	// trajectory...
 
-	// 0,0 => 6,3 => 5,2 => 4,1 => 3,0 => 2,-1 => 1,-2 => 0, -3 => 0,4
-
-	// 0,0 => 17, -4
-	if hittarget {
-		return highesty
-	}
-	return 0
+	// if hittarget {
+	// 	return highesty
+	// }
+	// return 0
+	return false
 }
