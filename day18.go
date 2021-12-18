@@ -15,7 +15,7 @@ func transformInput(s string) []string {
 	return input
 }
 
-func day18() {
+func day18part1() {
 	lines := readFile("day18input")
 
 	var last []string
@@ -31,6 +31,21 @@ func day18() {
 	}
 	fmt.Println(strings.Join(last, ""))
 	fmt.Println(calcMagnitude(last))
+}
+
+func day18() {
+	lines := readFile("day18input")
+
+	var sums []int
+	for _, line := range lines {
+		for _, line2 := range lines {
+			p1 := processSnailfish(transformInput(line))
+			p2 := processSnailfish(transformInput(line2))
+			res := processSnailfish(addSnaiflish(p1, p2))
+			sums = append(sums, calcMagnitude(res))
+		}
+	}
+	fmt.Println(max(sums))
 }
 
 // TODO this needs to be []string with each position stringfied because of addition
