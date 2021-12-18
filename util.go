@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
@@ -43,6 +44,10 @@ func atoi(str string) int {
 		log.Fatal(err)
 	}
 	return i
+}
+
+func itoa(i int) string {
+	return fmt.Sprintf("%v", i)
 }
 
 func ints(lines []string) []int {
