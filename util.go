@@ -183,9 +183,22 @@ func convertToBinary(line string) int {
 	for i, c := range line {
 		if c == '1' {
 			res[i] = 1
-		} else {
+		} else if c == '0' {
 			res[i] = 0
+		} else {
+			panic(fmt.Errorf("invalid value %v", c))
 		}
 	}
 	return binary(res)
+}
+
+func binary(list []int) int {
+	sum := 0
+	for i, v := range list {
+		pow := len(list) - i - 1
+		if v == 1 {
+			sum += int(math.Pow(2, float64(pow)))
+		}
+	}
+	return sum
 }

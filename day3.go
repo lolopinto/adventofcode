@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 )
 
 func day3() {
@@ -63,17 +62,6 @@ func day3part1() {
 	epilson := binary(epilsoninput)
 
 	fmt.Println(gamma * epilson)
-}
-
-func binary(list []int) int {
-	sum := 0
-	for i, v := range list {
-		pow := len(list) - i - 1
-		if v == 1 {
-			sum += int(math.Pow(2, float64(pow)))
-		}
-	}
-	return sum
 }
 
 func counts(lines []string, pos int) map[int]int {
