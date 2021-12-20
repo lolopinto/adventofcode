@@ -7,13 +7,11 @@ import (
 
 type gridType map[[2]int]rune
 
+// sparse grid approach not working. how do I write surrounding
 func day20() {
-	parts := readFileChunks("day20input", 2)
-	input := parts[0][0]
-	//	fmt.Println(parts[0])
-	gridInput := parts[1]
-	//	length := len(parts[1][0])
-	//	mid := int(math.Floor(float64(length / 2)))
+	lines := readFile("day20input")
+	input := lines[0]
+	gridInput := lines[2:]
 
 	m := make(gridType)
 	// initialize grid
@@ -23,29 +21,31 @@ func day20() {
 		}
 	}
 
-	_, x1, y1 := gridStats(m)
-	fmt.Println(x1, y1)
-
-	cp := makeMapCopy(m)
-	for x := x1[0]; x < x1[1]; x++ {
-		for y := y1[0]; y < y1[1]; y++ {
-			val := getNumberValue(m, x, y)
-			cp[[2]int{x, y}] = rune(input[val])
+	length := len(gridInput)
+	fmt.Println(length)
+	// it works all the way consistently for the small input
+	for i := 0; i < 2; i++ {
+		//		cp := makeMapCopy(m)
+		//		length += 2
+		cp := make(gridType)
+		//		_, low, hi := gridStats(m)
+		// low := length - length - 1
+		// hi := length + 1
+		//		fmt.Println("dim", low, hi)
+		length += 2
+		fmt.Println("length", length)
+		for x := 0; x < length; x++ {
+			for y := 0; y < length; y++ {
+				val := getNumberValue(m, x-1, y-1)
+				cp[[2]int{x, y}] = rune(input[val])
+			}
 		}
+		m = cp
+		ct := countLitUpGrid(m)
+		fmt.Println("count", i, ct)
 	}
-
-	ct1, x2, y2 := gridStats(cp)
-	fmt.Println(ct1, x2, y2)
-
-	cp2 := makeMapCopy(cp)
-	for x := x2[0]; x < x2[1]; x++ {
-		for y := y2[0]; y < y2[1]; y++ {
-			val := getNumberValue(cp, x, y)
-			cp2[[2]int{x, y}] = rune(input[val])
-		}
-	}
-	fmt.Println(gridStats(cp2))
-
+	ct := countLitUpGrid(m)
+	fmt.Println("end", ct)
 }
 
 func getValue(m gridType, i, j int) string {
@@ -68,29 +68,16 @@ func getNumberValue(m gridType, x, y int) int {
 	return convertToBinary(sb.String())
 }
 
-func makeMapCopy(m gridType) gridType {
-	ret := make(gridType)
-	for k, v := range m {
-		ret[k] = v
-	}
-	return ret
-}
-
-// count lit up, x range, y range
-func gridStats(m gridType) (int, [2]int, [2]int) {
+// count lit up
+func countLitUpGrid(m gridType) int {
 	ct := 0
-	var xes []int
-	var yes []int
-	for k, v := range m {
+	for _, v := range m {
+
 		if v == '#' {
 			ct++
 		}
-		xes = append(xes, k[0])
-		yes = append(yes, k[1])
 	}
-	// fmt.Println(min(xes), max(xes))
-	// fmt.Println(min(yes), max(yes))
-	return ct, [2]int{min(xes) - 2, max(xes) + 2}, [2]int{min(yes) - 2, max(yes) + 2}
+	return ct
 }
 
 //5868 is wrong
