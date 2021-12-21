@@ -12,75 +12,73 @@ func day21() {
 	p1 := atoi(r.FindStringSubmatch(lines[0])[2])
 	p2 := atoi(r.FindStringSubmatch(lines[1])[2])
 
-	player1 := &player{space: p1}
-	player2 := &player{space: p2}
-	current := player1
-	currentP1 := true
-	d := &deterministicDie{}
-	for {
-
-		done := current.move(d)
-
-		if currentP1 {
-			player1 = current
-			//			p1 = current
-			current = player2
-			currentP1 = false
-		} else {
-			player2 = current
-			current = player1
-			currentP1 = true
-		}
-		if done {
-			fmt.Println("done")
-			break
-		}
-	}
-	if player1.score < player2.score {
-		fmt.Println(player1.score * d.count)
+	p1wins, p2wins := playGame2(p1, p2, 0, 0, true)
+	//	fmt.Println(p1wins, p2wins)
+	if p1wins > p2wins {
+		fmt.Println(p1wins)
 	} else {
-		fmt.Println(player2.score * d.count)
+		fmt.Println(p2wins)
 	}
 }
 
-type player struct {
-	score int
-	space int
-}
-
-func (p *player) move(d *deterministicDie) bool {
-	sum := 0
-	val := []int{}
-	for i := 0; i < 3; i++ {
-		v := d.roll()
-		val = append(val, v)
-		sum += v
-	}
-	p.space += sum
-	if p.space > 10 {
-		p.space = p.space % 10
-		if p.space == 0 {
-			p.space = 10
+func moveGame(space, score, sum int) (int, int, bool) {
+	newspace := space + sum
+	if newspace > 10 {
+		newspace = newspace % 10
+		if newspace == 0 {
+			newspace = 10
 		}
 	}
-	p.score += p.space
-	//	fmt.Println(val, sum, "space", p.space, "score", p.score)
-
-	return p.score >= 1000
+	newscore := score + newspace
+	return newspace, newscore, newscore >= 21
 }
 
-type deterministicDie struct {
-	pos   int
-	count int
-}
+var cache map[[5]int][2]int
 
-func (d *deterministicDie) roll() int {
-	d.count++
-	ret := d.pos + 1
-	if ret == 100 {
-		d.pos = 0
-	} else {
-		d.pos = ret
+func playGame2(p1Space, p2Space, p1Score, p2Score int, currentP1 bool) (int, int) {
+	var currentP int
+	if currentP1 {
+		currentP = 1
 	}
-	return ret
+	k := [5]int{p1Space, p2Space, p1Score, p2Score, currentP}
+	if cache == nil {
+		cache = make(map[[5]int][2]int)
+	}
+	v := cache[k]
+	if v != [2]int{0, 0} {
+		return v[0], v[1]
+	}
+	p1wins := 0
+	p2wins := 0
+
+	for i := 1; i <= 3; i++ {
+		for j := 1; j <= 3; j++ {
+			for k := 1; k <= 3; k++ {
+				if currentP1 {
+					newSpace, newScore, done := moveGame(p1Space, p1Score, i+j+k)
+					if done {
+						p1wins++
+					} else {
+						p1Clone1wins, p2Clonewins := playGame2(newSpace, p2Space, newScore, p2Score, false)
+
+						p1wins += p1Clone1wins
+						p2wins += p2Clonewins
+					}
+				} else {
+					newSpace, newScore, done := moveGame(p2Space, p2Score, i+j+k)
+
+					if done {
+						p2wins++
+					} else {
+						p1Clone1wins, p2Clonewins := playGame2(p1Space, newSpace, p1Score, newScore, true)
+
+						p1wins += p1Clone1wins
+						p2wins += p2Clonewins
+					}
+				}
+			}
+		}
+	}
+	cache[k] = [2]int{p1wins, p2wins}
+	return p1wins, p2wins
 }
