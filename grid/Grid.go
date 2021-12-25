@@ -153,6 +153,14 @@ func (d *Data) SetValue(val interface{}) {
 	d.data = val
 }
 
+func (d *Data) SetValueOnce(val interface{}) error {
+	if d.data != nil {
+		return fmt.Errorf("tried to set value %v when value already exists", val)
+	}
+	d.data = val
+	return nil
+}
+
 type Pos struct {
 	Row, Column int
 }
