@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 func day1() {
 	chunks := readFileChunks("day1input", -1)
@@ -13,5 +16,11 @@ func day1() {
 		sums[i] = sum
 	}
 
+	sort.Ints(sums)
+
+	l := len(sums)
+
+	// part 1
 	fmt.Println(max(sums))
+	fmt.Println(sums[l-1] + sums[l-2] + sums[l-3])
 }
