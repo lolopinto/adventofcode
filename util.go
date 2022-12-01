@@ -27,8 +27,10 @@ func readFileChunks(path string, length int) [][]string {
 	}
 
 	parts := strings.Split(string(b), "\n\n")
-	if len(parts) != length {
-		log.Fatal("unexpected length")
+	if length != -1 {
+		if len(parts) != length {
+			log.Fatal("unexpected length")
+		}
 	}
 
 	result := make([][]string, len(parts))
