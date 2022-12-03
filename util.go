@@ -204,3 +204,11 @@ func binary(list []int) int {
 	}
 	return sum
 }
+
+func groupLines(lines []string, by int) [][]string {
+	var ret [][]string
+	for i := 0; i < len(lines); i += by {
+		ret = append(ret, lines[i:i+by])
+	}
+	return ret
+}
