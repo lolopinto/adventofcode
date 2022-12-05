@@ -25,7 +25,6 @@ func day5() {
 	stacksLen := len(stacks)
 	stacksMap := map[int][]string{}
 	for _, line := range input[:len(input)-1] {
-		// fmt.Println("line.....", line)
 		for i := 0; i < stacksLen; i++ {
 			start := i * 4
 			candidate := line[start : start+3]
@@ -42,11 +41,9 @@ func day5() {
 			stacksMap[i] = l
 		}
 	}
-	// fmt.Println(stacksMap)
 	r := regexp.MustCompile(`move (\d+) from (\d+) to (\d+)`)
 
 	for _, move := range chunks[1] {
-		// fmt.Println(move)
 		match := r.FindStringSubmatch(move)
 		count := atoi(match[1])
 		from := atoi(match[2]) - 1
@@ -55,11 +52,20 @@ func day5() {
 		fromList := stacksMap[from]
 		toList := stacksMap[to]
 
+		// // part 1
+		// for i := 0; i < count; i++ {
+		// 	topFrom := fromList[0]
+		// 	fromList = fromList[1:]
+		// 	toList = append([]string{topFrom}, toList...)
+		// }
+
+		// part 2. have to break this list out separately because of go-slice weirdness
+		var topFrom []string
 		for i := 0; i < count; i++ {
-			topFrom := fromList[0]
-			fromList = fromList[1:]
-			toList = append([]string{topFrom}, toList...)
+			topFrom = append(topFrom, fromList[i])
 		}
+		fromList = fromList[count:]
+		toList = append(topFrom, toList...)
 
 		stacksMap[from] = fromList
 		stacksMap[to] = toList
@@ -71,6 +77,4 @@ func day5() {
 		sb.WriteString(list[0])
 	}
 	fmt.Println(sb.String())
-	// fmt.Println(input[len(input)-1])
-
 }
