@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -45,6 +46,7 @@ func day7() {
 		curr = next
 	}
 
+	// part 1
 	valid := []*dir{}
 	checkAllDirs(root, &valid)
 	// fmt.Println(root)
@@ -54,6 +56,22 @@ func day7() {
 		total += d.size()
 	}
 	fmt.Println(total)
+
+	// part 2
+	sortedDirs := []*dir{}
+	addAllDirs(root, &sortedDirs)
+	unused := 30000000 - (70000000 - root.size())
+
+	sort.Slice(sortedDirs, func(i, j int) bool {
+		return sortedDirs[i].size() < sortedDirs[j].size()
+	})
+
+	for _, d := range sortedDirs {
+		if d.size() > unused {
+			fmt.Println(d.name, d.size())
+			break
+		}
+	}
 }
 
 func checkAllDirs(d *dir, valid *[]*dir) {
@@ -62,6 +80,14 @@ func checkAllDirs(d *dir, valid *[]*dir) {
 	}
 	for _, d2 := range d.dirs {
 		checkAllDirs(d2, valid)
+	}
+}
+
+func addAllDirs(d *dir, all *[]*dir) {
+	*all = append(*all, d)
+
+	for _, d2 := range d.dirs {
+		addAllDirs(d2, all)
 	}
 }
 
@@ -123,6 +149,5 @@ func parseCommand(lines []string, idx int, curr *dir) (*dir, int) {
 		panic(fmt.Sprintf("invalid cmd %s", cmd))
 	}
 
-	// TODO
 	return nil, len(lines)
 }
