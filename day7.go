@@ -39,18 +39,12 @@ func day7() {
 	i := 0
 	curr := root
 	for i < len(lines) {
-		// line := lines[i]
-		next, idx := parseCommand(lines, i, curr)
-		// fmt.Println("return", next, idx)
-		i = idx
-		curr = next
+		curr, i = parseCommand(lines, i, curr)
 	}
 
 	// part 1
 	valid := []*dir{}
 	checkAllDirs(root, &valid)
-	// fmt.Println(root)
-	// fmt.Println(root.size())
 	total := 0
 	for _, d := range valid {
 		total += d.size()
