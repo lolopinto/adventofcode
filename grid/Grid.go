@@ -104,6 +104,38 @@ func (g *Grid) RightAndDownNeighbors(r, c int) []Pos {
 	return ret
 }
 
+func (g *Grid) Top(r, c int) []Pos {
+	var ret []Pos
+	for i := r - 1; i >= 0; i-- {
+		ret = append(ret, Pos{Row: i, Column: c})
+	}
+	return ret
+}
+
+func (g *Grid) Bottom(r, c int) []Pos {
+	var ret []Pos
+	for i := r + 1; i < g.XLength; i++ {
+		ret = append(ret, Pos{Row: i, Column: c})
+	}
+	return ret
+}
+
+func (g *Grid) Left(r, c int) []Pos {
+	var ret []Pos
+	for i := c - 1; i >= 0; i-- {
+		ret = append(ret, Pos{Row: r, Column: i})
+	}
+	return ret
+}
+
+func (g *Grid) Right(r, c int) []Pos {
+	var ret []Pos
+	for i := c + 1; i < g.YLength; i++ {
+		ret = append(ret, Pos{Row: r, Column: i})
+	}
+	return ret
+}
+
 // returns up to 8 neighbors including diagonals
 func (g *Grid) Neighbors8(r, c int) []Pos {
 	var ret []Pos
