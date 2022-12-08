@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/lolopinto/adventofcode2020/grid"
 )
@@ -11,9 +12,9 @@ func day8() {
 
 	g := grid.NewIntGrid(lines)
 
-	// visible := g.XLength + g.YLength + g.XLength - 2 + g.YLength - 2
-
 	visibleCt := 0
+
+	// part 1
 	for r := 0; r < g.XLength; r++ {
 		for c := 0; c < g.YLength; c++ {
 			candidates := [][]grid.Pos{
@@ -40,4 +41,37 @@ func day8() {
 		}
 	}
 	fmt.Println(visibleCt)
+
+	// part2
+	max := math.MinInt
+
+	for r := 0; r < g.XLength; r++ {
+		for c := 0; c < g.YLength; c++ {
+			candidates := [][]grid.Pos{
+				g.Top(r, c),
+				g.Bottom(r, c),
+				g.Right(r, c),
+				g.Left(r, c),
+			}
+			curr := g.At(r, c).Int()
+			mult := 1
+			for _, cand := range candidates {
+
+				ct := 0
+				for _, pos := range cand {
+					comp := g.At(pos.Row, pos.Column).Int()
+					ct++
+					if comp >= curr {
+						break
+					}
+				}
+				mult *= ct
+			}
+			if mult > max {
+				max = mult
+			}
+		}
+	}
+
+	fmt.Println(max)
 }
