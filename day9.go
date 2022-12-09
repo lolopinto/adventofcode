@@ -7,38 +7,49 @@ func day9() {
 		x, y int
 	}
 	lines := readFile("day9input")
-	// head := map[point]bool{}
 	start := point{0, 0}
-	tail := map[point]bool{
-		start: true,
+	// tail 9
+	type ropes map[int]map[point]bool
+	type current map[int]point
+
+	allData := make(ropes)
+	currentPos := make(current)
+
+	for i := 1; i < 10; i++ {
+		allData[i] = map[point]bool{
+			start: true,
+		}
+		currentPos[i] = start
 	}
 
 	headPos := start
-	tailPos := start
 
-	touching := func() bool {
-		return abs(headPos.x, tailPos.x) <= 1 && abs(headPos.y, tailPos.y) <= 1
+	touching := func(leader, follower point) bool {
+		return abs(leader.x, follower.x) <= 1 && abs(leader.y, follower.y) <= 1
 	}
 
-	updateTailPos := func(pt point) {
-		tail[pt] = true
-		tailPos = pt
+	updateFollowerPos := func(pt point, idx int) {
+		// fmt.Println("update ", idx)
+
+		allData[idx][pt] = true
+		currentPos[idx] = pt
 	}
-	moveTailDiagonal := func() {
+
+	moveFollowerDiagonal := func(leader, follower point, idx int) {
 		// down left
-		if headPos.x < tailPos.x && headPos.y > tailPos.y {
-			updateTailPos(point{x: tailPos.x - 1, y: tailPos.y + 1})
+		if leader.x < follower.x && leader.y > follower.y {
+			updateFollowerPos(point{x: follower.x - 1, y: follower.y + 1}, idx)
 		}
-		if headPos.x < tailPos.x && headPos.y < tailPos.y {
-			updateTailPos(point{x: tailPos.x - 1, y: tailPos.y - 1})
-		}
-
-		if headPos.x > tailPos.x && headPos.y < tailPos.y {
-			updateTailPos(point{x: tailPos.x + 1, y: tailPos.y - 1})
+		if leader.x < follower.x && leader.y < follower.y {
+			updateFollowerPos(point{x: follower.x - 1, y: follower.y - 1}, idx)
 		}
 
-		if headPos.x > tailPos.x && headPos.y > tailPos.y {
-			updateTailPos(point{x: tailPos.x + 1, y: tailPos.y + 1})
+		if leader.x > follower.x && leader.y < follower.y {
+			updateFollowerPos(point{x: follower.x + 1, y: follower.y - 1}, idx)
+		}
+
+		if leader.x > follower.x && leader.y > follower.y {
+			updateFollowerPos(point{x: follower.x + 1, y: follower.y + 1}, idx)
 		}
 	}
 
@@ -46,56 +57,67 @@ func day9() {
 		parts := splitLength(line, " ", 2)
 		dir := parts[0]
 		for i := 0; i < atoi(parts[1]); i++ {
+
+			// move head first
 			switch dir {
 			case "R":
 				headPos.x++
-				if touching() {
-					continue
-				}
-				if headPos.x-tailPos.x == 2 && headPos.y == tailPos.y {
-					updateTailPos(point{x: tailPos.x + 1, y: tailPos.y})
-				} else {
-					moveTailDiagonal()
-				}
 			case "U":
 				headPos.y--
-				if touching() {
-					continue
-				}
-				if headPos.y-tailPos.y == -2 && headPos.x == tailPos.x {
-					updateTailPos(point{x: tailPos.x, y: tailPos.y - 1})
-				} else {
-					moveTailDiagonal()
-
-				}
-
 			case "D":
 				headPos.y++
-				if touching() {
-					continue
-				}
-				if headPos.y-tailPos.y == 2 && headPos.x == tailPos.x {
-					updateTailPos(point{x: tailPos.x, y: tailPos.y + 1})
-				} else {
-					moveTailDiagonal()
-
-				}
-
 			case "L":
 				headPos.x--
-				if touching() {
+			}
+
+			for j := 1; j < 10; j++ {
+				var leader point
+				follower := currentPos[j]
+				if j == 1 {
+					leader = headPos
+				} else {
+					leader = currentPos[j-1]
+				}
+
+				if touching(leader, follower) {
 					continue
 				}
-				if headPos.x-tailPos.x == -2 && headPos.y == tailPos.y {
-					updateTailPos(point{x: tailPos.x - 1, y: tailPos.y})
-				} else {
-					moveTailDiagonal()
 
+				switch dir {
+				case "R":
+
+					if leader.x-follower.x == 2 && leader.y == follower.y {
+						updateFollowerPos(point{x: follower.x + 1, y: follower.y}, j)
+					} else {
+						moveFollowerDiagonal(leader, follower, j)
+					}
+				case "U":
+					if leader.y-follower.y == -2 && leader.x == follower.x {
+						updateFollowerPos(point{x: follower.x, y: follower.y - 1}, j)
+					} else {
+						moveFollowerDiagonal(leader, follower, j)
+					}
+
+				case "D":
+					if leader.y-follower.y == 2 && leader.x == follower.x {
+						updateFollowerPos(point{x: follower.x, y: follower.y + 1}, j)
+					} else {
+						moveFollowerDiagonal(leader, follower, j)
+					}
+
+				case "L":
+					if leader.x-follower.x == -2 && leader.y == follower.y {
+						updateFollowerPos(point{x: follower.x - 1, y: follower.y}, j)
+					} else {
+						moveFollowerDiagonal(leader, follower, j)
+					}
 				}
-
 			}
 		}
 	}
-	fmt.Println(len(tail))
 
+	fmt.Println(len(allData[9]))
+	// for k := range allData[9] {
+	// 	fmt.Printf("%d:%d\n", k.x, k.y)
+	// }
 }
