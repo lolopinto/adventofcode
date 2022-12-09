@@ -9,48 +9,22 @@ func day9() {
 	lines := readFile("day9input")
 	start := point{0, 0}
 	// tail 9
-	type ropes map[int]map[point]bool
-	type current map[int]point
 
-	allData := make(ropes)
-	currentPos := make(current)
+	currentPos := make(map[int]point)
+	tail := make(map[point]bool)
 
 	for i := 1; i < 10; i++ {
-		allData[i] = map[point]bool{
-			start: true,
-		}
 		currentPos[i] = start
 	}
+	tail[start] = true
 
 	headPos := start
 
-	touching := func(leader, follower point) bool {
-		return abs(leader.x, follower.x) <= 1 && abs(leader.y, follower.y) <= 1
-	}
-
 	updateFollowerPos := func(pt point, idx int) {
-		// fmt.Println("update ", idx)
-
-		allData[idx][pt] = true
+		if idx == 9 {
+			tail[pt] = true
+		}
 		currentPos[idx] = pt
-	}
-
-	moveFollowerDiagonal := func(leader, follower point, idx int) {
-		// down left
-		if leader.x < follower.x && leader.y > follower.y {
-			updateFollowerPos(point{x: follower.x - 1, y: follower.y + 1}, idx)
-		}
-		if leader.x < follower.x && leader.y < follower.y {
-			updateFollowerPos(point{x: follower.x - 1, y: follower.y - 1}, idx)
-		}
-
-		if leader.x > follower.x && leader.y < follower.y {
-			updateFollowerPos(point{x: follower.x + 1, y: follower.y - 1}, idx)
-		}
-
-		if leader.x > follower.x && leader.y > follower.y {
-			updateFollowerPos(point{x: follower.x + 1, y: follower.y + 1}, idx)
-		}
 	}
 
 	for _, line := range lines {
@@ -79,45 +53,28 @@ func day9() {
 					leader = currentPos[j-1]
 				}
 
-				if touching(leader, follower) {
-					continue
-				}
+				diff := point{follower.x - leader.x, follower.y - leader.y}
 
-				switch dir {
-				case "R":
-
-					if leader.x-follower.x == 2 && leader.y == follower.y {
-						updateFollowerPos(point{x: follower.x + 1, y: follower.y}, j)
-					} else {
-						moveFollowerDiagonal(leader, follower, j)
-					}
-				case "U":
-					if leader.y-follower.y == -2 && leader.x == follower.x {
-						updateFollowerPos(point{x: follower.x, y: follower.y - 1}, j)
-					} else {
-						moveFollowerDiagonal(leader, follower, j)
-					}
-
-				case "D":
-					if leader.y-follower.y == 2 && leader.x == follower.x {
-						updateFollowerPos(point{x: follower.x, y: follower.y + 1}, j)
-					} else {
-						moveFollowerDiagonal(leader, follower, j)
-					}
-
-				case "L":
-					if leader.x-follower.x == -2 && leader.y == follower.y {
-						updateFollowerPos(point{x: follower.x - 1, y: follower.y}, j)
-					} else {
-						moveFollowerDiagonal(leader, follower, j)
-					}
+				if diff.x == 2 && diff.y == 2 {
+					updateFollowerPos(point{x: leader.x + 1, y: leader.y + 1}, j)
+				} else if diff.x == 2 && diff.y == -2 {
+					updateFollowerPos(point{x: leader.x + 1, y: leader.y - 1}, j)
+				} else if diff.x == -2 && diff.y == 2 {
+					updateFollowerPos(point{x: leader.x - 1, y: leader.y + 1}, j)
+				} else if diff.x == -2 && diff.y == -2 {
+					updateFollowerPos(point{x: leader.x - 1, y: leader.y - 1}, j)
+				} else if diff.x == 2 {
+					updateFollowerPos(point{x: leader.x + 1, y: leader.y}, j)
+				} else if diff.x == -2 {
+					updateFollowerPos(point{x: leader.x - 1, y: leader.y}, j)
+				} else if diff.y == 2 {
+					updateFollowerPos(point{x: leader.x, y: leader.y + 1}, j)
+				} else if diff.y == -2 {
+					updateFollowerPos(point{x: leader.x, y: leader.y - 1}, j)
 				}
 			}
 		}
 	}
 
-	fmt.Println(len(allData[9]))
-	// for k := range allData[9] {
-	// 	fmt.Printf("%d:%d\n", k.x, k.y)
-	// }
+	fmt.Println(len(tail))
 }
