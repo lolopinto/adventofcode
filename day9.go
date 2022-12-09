@@ -116,6 +116,10 @@ func day9part1() {
 
 			diff := point{tailPos.x - headPos.x, tailPos.y - headPos.y}
 
+			// confirmed that using the complicated logic in part 2 here works
+			// don't fully 100% understand why there's more steps to go here
+			// the underlying logic of if you're 2 away in any direction, just come 1
+			// closer makes sense tho
 			if diff.x == 2 {
 				updateTailPos(point{x: headPos.x + 1, y: headPos.y})
 			} else if diff.x == -2 {
