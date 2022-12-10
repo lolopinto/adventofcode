@@ -2,6 +2,17 @@ package main
 
 import "fmt"
 
+func deltaChange(d int) int {
+	if d == 0 {
+		return 0
+	}
+
+	if d < 0 {
+		return -1
+	}
+	return 1
+}
+
 func day9() {
 	type point struct {
 		x, y int
@@ -53,24 +64,11 @@ func day9() {
 					leader = currentPos[j-1]
 				}
 
-				diff := point{follower.x - leader.x, follower.y - leader.y}
+				dx := leader.x - follower.x
+				dy := leader.y - follower.y
 
-				if diff.x == 2 && diff.y == 2 {
-					updateFollowerPos(point{x: leader.x + 1, y: leader.y + 1}, j)
-				} else if diff.x == 2 && diff.y == -2 {
-					updateFollowerPos(point{x: leader.x + 1, y: leader.y - 1}, j)
-				} else if diff.x == -2 && diff.y == 2 {
-					updateFollowerPos(point{x: leader.x - 1, y: leader.y + 1}, j)
-				} else if diff.x == -2 && diff.y == -2 {
-					updateFollowerPos(point{x: leader.x - 1, y: leader.y - 1}, j)
-				} else if diff.x == 2 {
-					updateFollowerPos(point{x: leader.x + 1, y: leader.y}, j)
-				} else if diff.x == -2 {
-					updateFollowerPos(point{x: leader.x - 1, y: leader.y}, j)
-				} else if diff.y == 2 {
-					updateFollowerPos(point{x: leader.x, y: leader.y + 1}, j)
-				} else if diff.y == -2 {
-					updateFollowerPos(point{x: leader.x, y: leader.y - 1}, j)
+				if dx*dx+dy*dy > 2 {
+					updateFollowerPos(point{x: follower.x + deltaChange(dx), y: follower.y + deltaChange(dy)}, j)
 				}
 			}
 		}
@@ -114,20 +112,11 @@ func day9part1() {
 				headPos.x--
 			}
 
-			diff := point{tailPos.x - headPos.x, tailPos.y - headPos.y}
+			dx := headPos.x - tailPos.x
+			dy := headPos.y - tailPos.y
 
-			// confirmed that using the complicated logic in part 2 here works
-			// don't fully 100% understand why there's more steps to go here
-			// the underlying logic of if you're 2 away in any direction, just come 1
-			// closer makes sense tho
-			if diff.x == 2 {
-				updateTailPos(point{x: headPos.x + 1, y: headPos.y})
-			} else if diff.x == -2 {
-				updateTailPos(point{x: headPos.x - 1, y: headPos.y})
-			} else if diff.y == 2 {
-				updateTailPos(point{x: headPos.x, y: headPos.y + 1})
-			} else if diff.y == -2 {
-				updateTailPos(point{x: headPos.x, y: headPos.y - 1})
+			if dx*dx+dy*dy > 2 {
+				updateTailPos(point{x: tailPos.x + deltaChange(dx), y: tailPos.y + deltaChange(dy)})
 			}
 		}
 	}
