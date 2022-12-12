@@ -57,6 +57,7 @@ func day11() {
 	testTrue := regexp.MustCompile(`If true: throw to monkey (\d+)`)
 	testFalse := regexp.MustCompile(`If false: throw to monkey (\d+)`)
 
+	product := 1
 	for _, chunk := range chunks {
 		if len(chunk) != 6 {
 			panic(fmt.Sprintf("invalid chunk %s", chunk))
@@ -101,7 +102,11 @@ func day11() {
 			throwToTrue:  atoi(testTrueMatch[1]),
 			throwToFalse: atoi(testFalseMatch[1]),
 		}
+		product *= atoi(divisbleMatch[1])
 	}
+
+	prodInt := big.NewInt(int64(product))
+	// threeInt := big.NewInt(3)
 
 	for i := 1; i <= 10000; i++ {
 		for i := 0; i < len(chunks); i++ {
@@ -111,20 +116,20 @@ func day11() {
 				// how to evaluate the right number if we don't do the real math if this is "*"
 				v := mon.evaluateOp(s)
 				div := big.NewInt(0)
-				div.Div(v, big.NewInt(3))
-				// fmt.Println("v", v, div)
-				// v = v / 3
+
+				// part 1
+				// div.Div(v, threeInt)
+				// part 2
+				div.Mod(v, prodInt)
+
 				var mon2 *monkey
 				mod := big.NewInt(0)
-				// fmt.Println("large vvv", v, math.MaxInt64, v > math.MaxInt64)
 				mod.Mod(div, big.NewInt(int64(mon.divsibleBy)))
 				if mod.IsInt64() && mod.Int64() == 0 {
-					// fmt.Println("mod 0")
 					mon2 = m[mon.throwToTrue]
 					if mon2 == nil {
 						panic(fmt.Sprintf("could not find monkey %d", mon.throwToTrue))
 					}
-					// fmt.Printf("throwing %d to monkey %d. true path\n", v, mon.throwToTrue)
 				} else {
 					mon2 = m[mon.throwToFalse]
 					if mon2 == nil {
@@ -142,12 +147,8 @@ func day11() {
 	var cts []int
 	for _, v := range m {
 		cts = append(cts, v.ct)
-		// fmt.Println(v.x, v.starting)
 	}
-	fmt.Println(cts)
 	sort.Ints(cts)
 	l := len(cts)
 	fmt.Println(cts[l-1] * cts[l-2])
 }
-
-// so now this is running and taking too much CPU time
