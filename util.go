@@ -48,6 +48,14 @@ func atoi(str string) int {
 	return i
 }
 
+func atoi64(str string) int64 {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return int64(i)
+}
+
 func itoa(i int) string {
 	return fmt.Sprintf("%v", i)
 }
