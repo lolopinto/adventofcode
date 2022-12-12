@@ -60,6 +60,18 @@ func NewIntGrid(lines []string) *Grid {
 	return g
 }
 
+func NewRuneGrid(lines []string) *Grid {
+	g := NewRectGrid(len(lines), len(lines[0]))
+	for i := 0; i < g.XLength; i++ {
+		for j := 0; j < g.YLength; j++ {
+			g.data[i][j] = &Data{
+				data: rune(lines[i][j]),
+			}
+		}
+	}
+	return g
+}
+
 type Grid struct {
 	Length int
 
@@ -175,6 +187,11 @@ type Data struct {
 func (d *Data) Int() int {
 	// returns 0 if not valid
 	return d.data.(int)
+}
+
+func (d *Data) Rune() rune {
+	// returns 0 if not valid
+	return d.data.(rune)
 }
 
 func (d *Data) Data() interface{} {
