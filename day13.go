@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"unicode"
 )
 
@@ -150,29 +151,42 @@ func day13() {
 		return ret
 	}
 
+	// part 1
 	sum := 0
 	for i, chunk := range chunks {
-		// if i != 7 {
-		// 	continue
-		// }
 		left := parseInput(chunk[0])
 		right := parseInput(chunk[1])
 
-		// fmt.Println("left")
-		// for _, c := range left.children {
-		// 	fmt.Println(c)
-		// }
-		// fmt.Println("right")
-		// for _, c := range right.children {
-		// 	fmt.Println(c)
-		// }
-		// fmt.Println(left, right)
 		if left.comp(right) < 0 {
-			// fmt.Println(left.comp(right))
-			// fmt.Println(i + 1)
 			sum += (i + 1)
 		}
 	}
 
-	fmt.Println("answer:", sum)
+	fmt.Println("part 1 answer:", sum)
+
+	// part 2
+	var lists []*list
+	for _, chunk := range chunks {
+		left := parseInput(chunk[0])
+		right := parseInput(chunk[1])
+		lists = append(lists, left, right)
+	}
+
+	div1 := parseInput("[[2]]")
+	div2 := parseInput("[[6]]")
+	lists = append(lists, div1, div2)
+
+	sort.Slice(lists, func(i, j int) bool {
+		cmp := lists[i].comp(lists[j])
+		return cmp < 0
+	})
+
+	mult := 1
+	for idx, v := range lists {
+		if v == div1 || v == div2 {
+			mult *= (idx + 1)
+		}
+	}
+
+	fmt.Println("part 2 answer:", mult)
 }
