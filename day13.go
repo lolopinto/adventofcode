@@ -40,12 +40,9 @@ func (l *list) comp(right *list) int {
 		lc, ok := item.(intchild)
 		rc, ok2 := rightitem.(intchild)
 		if ok && ok2 {
-			// fmt.Println("both item", lc, rc)
-			// fmt.Println("intchild")
 			if lc == rc {
 				continue
 			}
-			// fmt.Println("both item", lc, rc)
 			if lc < rc {
 				return -1
 			}
@@ -56,14 +53,11 @@ func (l *list) comp(right *list) int {
 		rl, ok4 := rightitem.(*list)
 
 		if ok3 && ok4 {
-			// fmt.Println("both list", ll, rl)
 			cmp := ll.comp(rl)
-			// fmt.Println("compare1", ll, rl, cmp)
 			if cmp != 0 {
 				return cmp
 			}
 			cmp = rl.comp(ll)
-			// fmt.Println("compare2", ll, rl, cmp)
 			if cmp != 0 {
 				return cmp
 			}
@@ -82,7 +76,6 @@ func (l *list) comp(right *list) int {
 			rl.add(rc)
 		}
 
-		// fmt.Println("double comp", ll, rl)
 		cmp := ll.comp(rl)
 		if cmp != 0 {
 			return cmp
@@ -104,19 +97,14 @@ func day13() {
 	chunks := readFileChunks("day13input", -1)
 
 	parseInput := func(line string) *list {
-		// leftct := 0
-		// var lists [][]int
 		ret := &list{}
 
-		// var curr []int
-		//		curr := ret
 		stack := []*list{ret}
 		i := 0
 		curr := ret
 
 		for i < len(line) {
 			c := line[i]
-			// for i, c := range line {
 			if c == '[' {
 				if i != 0 {
 					temp := &list{}
