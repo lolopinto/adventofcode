@@ -5,109 +5,67 @@ import (
 	"unicode"
 )
 
-type listItem interface {
-	rightOrder(v listItem) bool
-}
-
-type listcontainer interface {
-	add(v intchild)
-}
-
-// TODO: this is wrong. it should be list. will it matter?
-type intList []intchild
-
-func (l *intList) rightOrder(v listItem) bool {
-	r, ok := v.(*intList)
-	if !ok {
-		return false
-	}
-	list := *l
-	list2 := *r
-	// fmt.Println(list, list2)
-	for i := 0; i < len(list); i++ {
-		if i >= len(list2) {
-			return false
-		}
-
-		if list[i] < list2[i] {
-			return true
-		} else if list2[i] < list[i] {
-			return false
-		}
-	}
-	// should only happen with malformed input..
-	// return len(list) == len(list2) {
-	// 	return true
-	// }
-	return false
-}
-
-func (l *intList) add(v intchild) {
-	*l = append(*l, v)
-}
-
 type intchild int
 
-func (i intchild) rightOrder(v listItem) bool {
-	val, ok := v.(*intchild)
-	if ok {
-		// fmt.Println(i, *val)
-		if i < *val {
-			return true
-		}
-	}
-	return false
+func (i intchild) childMarker() bool {
+	return true
+}
+
+type child interface {
+	childMarker() bool
 }
 
 type list struct {
-	children []listItem
+	children []child
+}
+
+func (i *list) childMarker() bool {
+	return true
 }
 
 func (l *list) add(v intchild) {
 	l.children = append(l.children, v)
 }
 
-func (l *list) rightOrder(right *list) bool {
+func (l *list) comp(right *list) int {
 	for i := 0; i < len(l.children); i++ {
 
 		if i >= len(right.children) {
-			return false
+			return 1
 		}
 		item := l.children[i]
 		rightitem := right.children[i]
 
 		lc, ok := item.(intchild)
 		rc, ok2 := rightitem.(intchild)
-		// fmt.Println(ok, ok2)
 		if ok && ok2 {
-			fmt.Println("both item", lc, rc)
+			// fmt.Println("both item", lc, rc)
 			// fmt.Println("intchild")
+			if lc == rc {
+				continue
+			}
+			// fmt.Println("both item", lc, rc)
 			if lc < rc {
-				return true
+				return -1
 			}
-			// done
-			if rc < lc {
-				return false
-			}
-			continue
+			return 1
 		}
 
-		ll, ok3 := item.(*intList)
-		rl, ok4 := rightitem.(*intList)
+		ll, ok3 := item.(*list)
+		rl, ok4 := rightitem.(*list)
 
 		if ok3 && ok4 {
-			fmt.Println("both list", ll, rl)
-			if ll.rightOrder(rl) {
-				return true
+			// fmt.Println("both list", ll, rl)
+			cmp := ll.comp(rl)
+			// fmt.Println("compare1", ll, rl, cmp)
+			if cmp != 0 {
+				return cmp
 			}
-			// fmt.Println("compare", ll, rl, 0)
-			if rl.rightOrder(ll) {
-				return false
+			cmp = rl.comp(ll)
+			// fmt.Println("compare2", ll, rl, cmp)
+			if cmp != 0 {
+				return cmp
 			}
-			// r = rl.comp(ll)
-			// if r != 0 {
-			// 	return 0
-			// }
 
 			continue
 		}
@@ -115,26 +73,30 @@ func (l *list) rightOrder(right *list) bool {
 		// was individual, but not list
 		// convert to list
 		if ok {
-			ll = (&intList{})
+			ll = (&list{})
 			ll.add(lc)
 		}
 		if ok2 {
-			rl = (&intList{})
+			rl = (&list{})
 			rl.add(rc)
 		}
 
-		fmt.Println("double comp", ll, rl)
-		if ll.rightOrder(rl) {
-			return true
+		// fmt.Println("double comp", ll, rl)
+		cmp := ll.comp(rl)
+		if cmp != 0 {
+			return cmp
 		}
-		if rl.rightOrder(ll) {
-			return false
+		cmp = rl.comp(ll)
+		if cmp != 0 {
+			return cmp
 		}
 	}
 
-	// cheating because of what  we're doing
+	if len(l.children) == len(right.children) {
+		return 0
+	}
 	// left side ran out of items, right order
-	return true
+	return -1
 }
 
 func day13() {
@@ -147,27 +109,28 @@ func day13() {
 
 		// var curr []int
 		//		curr := ret
-		stack := []listcontainer{ret}
+		stack := []*list{ret}
 		i := 0
+		curr := ret
 
 		for i < len(line) {
 			c := line[i]
 			// for i, c := range line {
 			if c == '[' {
 				if i != 0 {
-					curr := &intList{}
+					temp := &list{}
 
-					ret.children = append(ret.children, curr)
-					stack = append(stack, curr)
+					curr.children = append(curr.children, temp)
+					stack = append(stack, temp)
+					curr = temp
 				}
 				i++
 			} else if c == ']' {
-				// leftct--
 				i++
-				// lists = append(lists, curr)
-				// fmt.Println(lists)
-				// curr = []int{}
 				stack = stack[:len(stack)-1]
+				if len(stack) > 0 {
+					curr = stack[len(stack)-1]
+				}
 			} else if unicode.IsDigit(rune(c)) {
 				end := i
 				for j := i; j < len(line); j++ {
@@ -176,12 +139,7 @@ func day13() {
 						break
 					}
 				}
-				curr := stack[len(stack)-1]
-				// fmt.Println("curr", curr)
 				curr.add(intchild(atoi(line[i:end])))
-				// fmt.Println(line[i:end])
-				// curr = append(curr, atoi(line[i:end]))
-				// fmt.Println(curr)
 				i = end
 			} else if c != ',' {
 				panic(fmt.Sprintf("invalid character %s", string(rune(c))))
@@ -209,14 +167,11 @@ func day13() {
 		// 	fmt.Println(c)
 		// }
 		// fmt.Println(left, right)
-		if left.rightOrder(right) {
-			// TODO change what's being returned. misunderstood
-			// if r != 0 {
-			fmt.Println(i + 1)
+		if left.comp(right) < 0 {
+			// fmt.Println(left.comp(right))
+			// fmt.Println(i + 1)
 			sum += (i + 1)
 		}
-
-		// break
 	}
 
 	fmt.Println("answer:", sum)
