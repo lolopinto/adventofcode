@@ -7,7 +7,7 @@ import (
 )
 
 // for some reason it's float64 at some point, why?? but never int64??
-func interfaceToint(i interface{}) (int, bool) {
+func anyToInt(i any) (int, bool) {
 	v, ok := i.(int)
 	if ok {
 		return v, ok
@@ -23,7 +23,7 @@ func interfaceToint(i interface{}) (int, bool) {
 	return 0, false
 }
 
-func cmplist(l, r []interface{}) int {
+func cmplist(l, r []any) int {
 	for i := 0; i < len(l); i++ {
 		if i >= len(r) {
 			return 1
@@ -32,8 +32,8 @@ func cmplist(l, r []interface{}) int {
 		li := l[i]
 		ri := r[i]
 
-		lint, ok := interfaceToint(li)
-		rint, ok2 := interfaceToint(ri)
+		lint, ok := anyToInt(li)
+		rint, ok2 := anyToInt(ri)
 		if ok && ok2 {
 			if lint == rint {
 				continue
@@ -44,8 +44,8 @@ func cmplist(l, r []interface{}) int {
 			return 1
 		}
 
-		ll, ok3 := li.([]interface{})
-		rl, ok4 := ri.([]interface{})
+		ll, ok3 := li.([]any)
+		rl, ok4 := ri.([]any)
 		if ok3 && ok4 {
 			cmp := cmplist(ll, rl)
 			if cmp != 0 {
@@ -76,8 +76,8 @@ func cmplist(l, r []interface{}) int {
 func day13json() {
 	chunks := readFileChunks("day13input", -1)
 
-	parseInput := func(line string) []interface{} {
-		var ret []interface{}
+	parseInput := func(line string) []any {
+		var ret []any
 		if err := json.Unmarshal([]byte(line), &ret); err != nil {
 			panic(fmt.Errorf("error parsing json: %v", err))
 		}
@@ -95,7 +95,7 @@ func day13json() {
 	}
 
 	// part 2
-	var lists [][]interface{}
+	var lists [][]any
 
 	for _, chunk := range chunks {
 		left := parseInput(chunk[0])
@@ -118,11 +118,11 @@ func day13json() {
 		if len(v) != 1 {
 			continue
 		}
-		l2, ok := v[0].([]interface{})
+		l2, ok := v[0].([]any)
 		if !ok || len(l2) != 1 {
 			continue
 		}
-		v2, _ := interfaceToint(l2[0])
+		v2, _ := anyToInt(l2[0])
 		if v2 == 2 || v2 == 6 {
 			mult *= (idx + 1)
 		}
