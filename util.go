@@ -220,3 +220,11 @@ func groupLines(lines []string, by int) [][]string {
 	}
 	return ret
 }
+
+func windowed[T any](list []T, n int) [][]T {
+	ret := [][]T{}
+	for i := 0; i < len(list)-n+1; i++ {
+		ret = append(ret, list[i:i+n])
+	}
+	return ret
+}
