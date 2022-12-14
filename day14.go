@@ -69,11 +69,6 @@ func day14() {
 		}
 	}
 
-	canRest := func(x, y int) bool {
-		y++
-		_, ok := m[makeKey(x, y)]
-		return ok
-	}
 	leftDiagonal := func(x, y int) (int, int) {
 		return x - 1, y + 1
 	}
@@ -84,105 +79,68 @@ func day14() {
 		return x, y + 1
 	}
 
-	// canTryLeft := func(x, y int) (bool, int, int) {
-	// 	x--
-	// 	y++
-	// 	_, ok := m[makeKey(x, y)]
-	// 	if ok || !canRest(x, y) {
-	// 		return false, x, y
-	// 	}
-	// 	m[makeKey(x, y)] = 'S'
-	// 	fmt.Println("resting left", x, y)
-	// 	return true, x, y
-	// }
-	// canTryRight := func(x, y int) (bool, int, int) {
-	// 	x++
-	// 	y++
-	// 	_, ok := m[makeKey(x, y)]
-	// 	if ok || !canRest(x, y) {
-	// 		return false, x, y
-	// 	}
-	// 	m[makeKey(x, y)] = 'S'
-	// 	fmt.Println("resting right", x, y)
-	// 	return true, x, y
-	// }
-
 	unitct := 0
 
 	startx := 500
 	starty := 0
 	startkey := makeKey(startx, starty)
 	// main for loop
+	done := false
 	for {
-		done := false
-		if m[startkey] == 'S' {
-			// TODO BS
-			// if unitct == 5 {
-
-			fmt.Println("TODO as to when to stop")
-			break
-		}
-
-		// for {
-		x := startx
-		y := starty
-
-		fns := []func(int, int) (int, int){
-			moveDown,
-			leftDiagonal,
-			rightDiagonal,
-		}
-
-		// for each direction, do...
-		for idx, fn := range fns {
-
-			// do this direction while we can
-
-			for {
-
-				x2, y2 := fn(x, y)
-				key := makeKey(x2, y2)
-				v, ok := m[key]
-				fmt.Println("trying idx", idx, x2, y2, string(v), ok)
-
-				// went this low, fail?
-				if y2 > maxy {
-					fmt.Println("breaking fail", x2, y2, x, y)
-					done = true
-					break
-				}
-
-				// nothing there, continue
-				// only update this if it fails...
-				if !ok {
-					// if unitct >= 22 {
-					// 	fmt.Println("trying for 23", x2, y2)
-					// }
-					x = x2
-					y = y2
-					// fmt.Println("assinging next dir", x, y)
-					continue
-				}
-				fmt.Println("breakkking", x2, y2, x, y, string(v))
-				break
-			}
-		}
-
-		if canRest(x, y) {
-			m[makeKey(x, y)] = 'S'
-			unitct++
-			fmt.Println("resting", x, y, unitct)
-			continue
-		} else {
-			fmt.Println("cannot rest", x, y)
-			// done = true
-		}
-		// done = true
-		// break
-		// }
 		if done {
 			break
 		}
+		// new sand
+		x := startx
+		y := starty
+		for {
+
+			if done || y > maxy || m[startkey] == 'S' {
+				fmt.Println("done", x, y)
+				done = true
+				break
+			}
+
+			var x2, y2 int
+			var key string
+			x2, y2 = moveDown(x, y)
+			key = makeKey(x2, y2)
+			_, ok := m[key]
+			// fmt.Println("trying", x2, y2, string(v), ok)
+
+			if !ok {
+				x = x2
+				y = y2
+				continue
+			}
+
+			x2, y2 = leftDiagonal(x, y)
+			key = makeKey(x2, y2)
+			_, ok = m[key]
+			// fmt.Println("trying", x2, y2, string(v), ok)
+			if !ok {
+				x = x2
+				y = y2
+				continue
+			}
+
+			x2, y2 = rightDiagonal(x, y)
+			key = makeKey(x2, y2)
+			_, ok = m[key]
+			// fmt.Println("trying", x2, y2, string(v), ok)
+			if !ok {
+				x = x2
+				y = y2
+				continue
+			}
+
+			m[makeKey(x, y)] = 'S'
+			unitct++
+			// fmt.Println("resting", x, y, unitct)
+			break
+
+		}
+
 	}
-	fmt.Println(m)
+	fmt.Println(unitct)
 }
