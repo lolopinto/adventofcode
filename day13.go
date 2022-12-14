@@ -57,10 +57,6 @@ func (l *list) comp(right *list) int {
 			if cmp != 0 {
 				return cmp
 			}
-			cmp = rl.comp(ll)
-			if cmp != 0 {
-				return cmp
-			}
 
 			continue
 		}
@@ -77,10 +73,6 @@ func (l *list) comp(right *list) int {
 		}
 
 		cmp := ll.comp(rl)
-		if cmp != 0 {
-			return cmp
-		}
-		cmp = rl.comp(ll)
 		if cmp != 0 {
 			return cmp
 		}
