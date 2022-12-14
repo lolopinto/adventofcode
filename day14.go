@@ -4,54 +4,30 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	"github.com/lolopinto/adventofcode2020/grid"
 )
 
 func day14() {
 
 	lines := readFile("day14input")
 
-	makeKey := func(i, j int) string {
-		return fmt.Sprintf("%d-%d", i, j)
-	}
+	m := make(map[grid.Pos]rune)
 
-	m := make(map[string]rune)
-
-	makePos := func(s string) [2]int {
+	makePos := func(s string) grid.Pos {
 		pair := splitLength(s, ",", 2)
-		return [2]int{atoi(pair[0]), atoi(pair[1])}
+		return grid.Pos{Row: atoi(pair[0]), Column: atoi(pair[1])}
 	}
 
-	fillRock := func(start, end [2]int) int {
-		startx, starty, endx, endy := 0, 0, 0, 0
+	fillRock := func(start, end grid.Pos) int {
+		endy := -1
+		start.Line(&end, func(p *grid.Pos) {
+			m[*p] = 'R'
+			if p.Column > endy {
+				endy = p.Column
+			}
+		})
 
-		//
-		if start[0] == end[0] {
-			startx = start[0]
-			endx = end[0]
-			if start[1] < end[1] {
-				starty = start[1]
-				endy = end[1]
-			} else {
-				starty = end[1]
-				endy = start[1]
-			}
-		} else {
-			starty = start[1]
-			endy = end[1]
-			if start[0] < end[0] {
-				startx = start[0]
-				endx = end[0]
-			} else {
-				startx = end[0]
-				endx = start[0]
-			}
-		}
-
-		for x := startx; x <= endx; x++ {
-			for y := starty; y <= endy; y++ {
-				m[makeKey(x, y)] = 'R'
-			}
-		}
 		return endy
 	}
 
@@ -85,7 +61,8 @@ func day14() {
 
 	startx := 500
 	starty := 0
-	startkey := makeKey(startx, starty)
+	startPos := grid.NewPos(startx, starty)
+
 	// main for loop
 	done := false
 	for {
@@ -97,30 +74,26 @@ func day14() {
 		y := starty
 		for {
 
-			if m[startkey] == 'S' {
-				fmt.Println("done", x, y)
+			if m[startPos] == 'S' {
 				done = true
 				break
 			}
 
 			// part 2
 			if y+1 == infinitey {
-				m[makeKey(x, y)] = 'S'
+				m[grid.NewPos(x, y)] = 'S'
 				unitct++
 				break
 			}
 
 			if y > maxy {
-				fmt.Println("done", x, y)
 				done = true
 				break
 			}
 
 			var x2, y2 int
-			var key string
 			x2, y2 = moveDown(x, y)
-			key = makeKey(x2, y2)
-			_, ok := m[key]
+			_, ok := m[grid.NewPos(x2, y2)]
 
 			if !ok {
 				x = x2
@@ -129,8 +102,7 @@ func day14() {
 			}
 
 			x2, y2 = leftDiagonal(x, y)
-			key = makeKey(x2, y2)
-			_, ok = m[key]
+			_, ok = m[grid.NewPos(x2, y2)]
 			if !ok {
 				x = x2
 				y = y2
@@ -138,15 +110,14 @@ func day14() {
 			}
 
 			x2, y2 = rightDiagonal(x, y)
-			key = makeKey(x2, y2)
-			_, ok = m[key]
+			_, ok = m[grid.NewPos(x2, y2)]
 			if !ok {
 				x = x2
 				y = y2
 				continue
 			}
 
-			m[makeKey(x, y)] = 'S'
+			m[grid.NewPos(x, y)] = 'S'
 			unitct++
 			break
 		}

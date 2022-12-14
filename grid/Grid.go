@@ -213,3 +213,40 @@ func (d *Data) SetValueOnce(val interface{}) error {
 type Pos struct {
 	Row, Column int
 }
+
+func NewPos(r, c int) Pos {
+	return Pos{Row: r, Column: c}
+}
+
+func (p *Pos) Line(p2 *Pos, fn func(pos *Pos)) {
+	startr, startc, endr, endc := p.Row, p.Column, p2.Row, p2.Column
+
+	dr := delta(p.Row, p2.Row)
+	dc := delta(p.Column, p2.Column)
+
+	if dr < 1 {
+		startr = p2.Row
+		endr = p.Row
+	}
+	if dc < 1 {
+		startc = p2.Column
+		endc = p.Column
+
+	}
+
+	for r := startr; r <= endr; r++ {
+		for c := startc; c <= endc; c++ {
+			fn(&Pos{r, c})
+		}
+	}
+}
+
+func delta(one, two int) int {
+	if one < two {
+		return 1
+	}
+	if one > two {
+		return -1
+	}
+	return 0
+}
