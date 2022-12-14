@@ -47,14 +47,14 @@ func day14() {
 
 	infinitey := maxy + 2
 
-	leftDiagonal := func(x, y int) (int, int) {
-		return x - 1, y + 1
+	leftDiagonal := func(x, y int) grid.Pos {
+		return grid.NewPos(x-1, y+1)
 	}
-	rightDiagonal := func(x, y int) (int, int) {
-		return x + 1, y + 1
+	rightDiagonal := func(x, y int) grid.Pos {
+		return grid.NewPos(x+1, y+1)
 	}
-	moveDown := func(x, y int) (int, int) {
-		return x, y + 1
+	moveDown := func(x, y int) grid.Pos {
+		return grid.NewPos(x, y+1)
 	}
 
 	unitct := 0
@@ -91,29 +91,22 @@ func day14() {
 				break
 			}
 
-			var x2, y2 int
-			x2, y2 = moveDown(x, y)
-			_, ok := m[grid.NewPos(x2, y2)]
-
-			if !ok {
-				x = x2
-				y = y2
-				continue
+			toTry := []grid.Pos{
+				moveDown(x, y),
+				leftDiagonal(x, y),
+				rightDiagonal(x, y),
 			}
-
-			x2, y2 = leftDiagonal(x, y)
-			_, ok = m[grid.NewPos(x2, y2)]
-			if !ok {
-				x = x2
-				y = y2
-				continue
+			cont := false
+			for _, t := range toTry {
+				_, ok := m[t]
+				if !ok {
+					x = t.Row
+					y = t.Column
+					cont = true
+					break
+				}
 			}
-
-			x2, y2 = rightDiagonal(x, y)
-			_, ok = m[grid.NewPos(x2, y2)]
-			if !ok {
-				x = x2
-				y = y2
+			if cont {
 				continue
 			}
 
