@@ -69,6 +69,8 @@ func day14() {
 		}
 	}
 
+	infinitey := maxy + 2
+
 	leftDiagonal := func(x, y int) (int, int) {
 		return x - 1, y + 1
 	}
@@ -95,7 +97,20 @@ func day14() {
 		y := starty
 		for {
 
-			if done || y > maxy || m[startkey] == 'S' {
+			if m[startkey] == 'S' {
+				fmt.Println("done", x, y)
+				done = true
+				break
+			}
+
+			// part 2
+			if y+1 == infinitey {
+				m[makeKey(x, y)] = 'S'
+				unitct++
+				break
+			}
+
+			if y > maxy {
 				fmt.Println("done", x, y)
 				done = true
 				break
@@ -106,7 +121,6 @@ func day14() {
 			x2, y2 = moveDown(x, y)
 			key = makeKey(x2, y2)
 			_, ok := m[key]
-			// fmt.Println("trying", x2, y2, string(v), ok)
 
 			if !ok {
 				x = x2
@@ -117,7 +131,6 @@ func day14() {
 			x2, y2 = leftDiagonal(x, y)
 			key = makeKey(x2, y2)
 			_, ok = m[key]
-			// fmt.Println("trying", x2, y2, string(v), ok)
 			if !ok {
 				x = x2
 				y = y2
@@ -127,7 +140,6 @@ func day14() {
 			x2, y2 = rightDiagonal(x, y)
 			key = makeKey(x2, y2)
 			_, ok = m[key]
-			// fmt.Println("trying", x2, y2, string(v), ok)
 			if !ok {
 				x = x2
 				y = y2
@@ -136,11 +148,8 @@ func day14() {
 
 			m[makeKey(x, y)] = 'S'
 			unitct++
-			// fmt.Println("resting", x, y, unitct)
 			break
-
 		}
-
 	}
 	fmt.Println(unitct)
 }
