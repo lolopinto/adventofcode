@@ -53,8 +53,8 @@ func day15alternate() {
 	}
 	ranges := map[int][]missingRange{}
 
-	searchy := 10
-	// searchy := 2000000
+	// searchy := 10
+	searchy := 2000000
 
 	// addMaybe := func(r, c int) {
 	// 	p := grid.NewPos(r, c)
@@ -79,106 +79,94 @@ func day15alternate() {
 	}
 
 	maybeAddRange := func(arg missingRangeInfo) {
-
-		candidates := []missingRange{}
-		if arg.start.Column == arg.end.Column {
-			candidates = append(candidates, missingRange{
-				start: arg.start.Row, end: arg.end.Row,
-				col: arg.start.Column,
-			})
-			// fmt.Println("keep range per column", r)
-		} else {
-			// need to split range??
-			for c := arg.start.Column; c <= arg.end.Column; c++ {
-				candidates = append(candidates, missingRange{start: arg.start.Row, end: arg.end.Row, col: c})
-			}
-			// fmt.Println("split range", r, candidates)
+		r := missingRange{
+			start: arg.start.Row, end: arg.end.Row,
+			col: arg.start.Column,
+		}
+		currentCol := r.col
+		if currentCol != searchy {
+			// return
 		}
 
-		for _, r := range candidates {
-			currentCol := r.col
-			if currentCol != searchy {
-				continue
+		currentRanges := ranges[currentCol]
+		if currentRanges == nil {
+			currentRanges = []missingRange{}
+		}
+		toAdd := true
+		for idx, existing := range currentRanges {
+			log := false
+			if currentCol == searchy {
+				// log = true
 			}
 
-			currentRanges := ranges[currentCol]
-			if currentRanges == nil {
-				currentRanges = []missingRange{}
-			}
-			toAdd := true
-			for idx, existing := range currentRanges {
-				log := false
-				if currentCol == searchy {
-					// log = true
+			if contains(existing, r) {
+				// drop new one
+				if log {
+					fmt.Println("dropping new one", existing, r)
 				}
-
-				if contains(existing, r) {
-					// drop new one
-					if log {
-						fmt.Println("dropping new one", existing, r)
-					}
-					toAdd = false
-					break
-				}
-
-				if contains(r, existing) {
-					// update existing
-					if log {
-						fmt.Println("upating existing", existing, r)
-					}
-					currentRanges[idx] = r
-					ranges[currentCol] = currentRanges
-					toAdd = false
-					break
-				}
-
-				// intersects + r bigger
-				if intersects(existing, r) {
-					if log {
-						fmt.Println("intersects update end", existing, r)
-					}
-					// extend the back
-					currentRanges[idx] = missingRange{
-						start: existing.start,
-						end:   r.end,
-					}
-					ranges[currentCol] = currentRanges
-					if log {
-						fmt.Println("new val", currentRanges[idx])
-					}
-					toAdd = false
-					break
-				}
-
-				// intersects + existing bigger
-				if intersects(r, existing) {
-					if log {
-						fmt.Println("intersects upadte new", existing, r)
-					}
-					// extend the back
-					currentRanges[idx] = missingRange{
-						start: r.start,
-						end:   existing.end,
-					}
-					ranges[currentCol] = currentRanges
-					if log {
-						fmt.Println("new val", currentRanges[idx])
-					}
-					toAdd = false
-					break
-				}
-
+				toAdd = false
+				break
 			}
 
-			if toAdd {
-				currentRanges = append(currentRanges, r)
+			if contains(r, existing) {
+				// update existing
+				if log {
+					fmt.Println("upating existing", existing, r)
+				}
+				currentRanges[idx] = r
 				ranges[currentCol] = currentRanges
-				if currentCol == searchy {
-					// fmt.Println("new", ranges, r)
-					// fmt.Println("adding", r)
-					// fmt.Println("new", ranges, r)
-					// fmt.Println(len(currentRanges))
+				toAdd = false
+				break
+			}
+
+			// intersects + r bigger
+			if intersects(existing, r) {
+				if log {
+					fmt.Println("intersects update end", existing, r)
 				}
+				// extend the back
+				currentRanges[idx] = missingRange{
+					start: existing.start,
+					end:   r.end,
+					col:   currentCol,
+				}
+				ranges[currentCol] = currentRanges
+				if log {
+					fmt.Println("new val", currentRanges[idx])
+				}
+				toAdd = false
+				break
+			}
+
+			// intersects + existing bigger
+			if intersects(r, existing) {
+				if log {
+					fmt.Println("intersects upadte new", existing, r)
+				}
+				// extend the back
+				currentRanges[idx] = missingRange{
+					start: r.start,
+					end:   existing.end,
+					col:   currentCol,
+				}
+				ranges[currentCol] = currentRanges
+				if log {
+					fmt.Println("new val", currentRanges[idx])
+				}
+				toAdd = false
+				break
+			}
+
+		}
+
+		if toAdd {
+			currentRanges = append(currentRanges, r)
+			ranges[currentCol] = currentRanges
+			if currentCol == searchy {
+				// fmt.Println("new", ranges, r)
+				// fmt.Println("adding", r)
+				// fmt.Println("new", ranges, r)
+				// fmt.Println(len(currentRanges))
 			}
 		}
 
@@ -236,8 +224,22 @@ func day15alternate() {
 		return potentialranges[i].start < potentialranges[j].start
 	})
 
+	var result []missingRange
+	for _, v := range potentialranges {
+		add := true
+		for _, safe := range result {
+			if contains(safe, v) {
+				add = false
+				break
+			}
+		}
+		if add {
+			result = append(result, v)
+		}
+	}
+
 	lastend := -1
-	for i, v := range potentialranges {
+	for i, v := range result {
 		sum += (v.end - v.start) + 1
 
 		if i != 0 && lastend > v.start {
@@ -252,6 +254,6 @@ func day15alternate() {
 		}
 	}
 
-	fmt.Println(potentialranges)
+	fmt.Println(result)
 	fmt.Println(sum)
 }
