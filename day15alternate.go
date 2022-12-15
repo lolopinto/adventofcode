@@ -51,8 +51,15 @@ func day15alternate() {
 	}
 	ranges := map[int][]missingRange{}
 
+	miny := 0
+
+	// example
 	// searchy := 10
+	// maxy := 20
+
+	// question
 	searchy := 2000000
+	maxy := 4000000
 
 	// does a contain b
 	contains := func(a, b missingRange) bool {
@@ -230,6 +237,22 @@ func day15alternate() {
 		}
 	}
 
-	fmt.Println(result)
-	fmt.Println(sum)
+	// fmt.Println(result)
+	fmt.Println("part 1:", sum)
+
+	for col, cands := range ranges {
+		if col > maxy || col < miny || len(cands) == 1 {
+			continue
+		}
+		lastend := -1
+		for i, c := range cands {
+			if i != 0 {
+				if c.start-lastend > 1 {
+					fmt.Println("part 2:", (lastend+1)*4000000+col)
+					break
+				}
+			}
+			lastend = c.end
+		}
+	}
 }
