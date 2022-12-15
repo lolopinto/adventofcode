@@ -40,11 +40,16 @@ func day15alternate() {
 		beacons = append(beacons, beacon)
 	}
 
-	// TODO this should just be rows
-	// and not columns, can fix if it's working
 	type missingRange struct {
-		start grid.Pos
-		end   grid.Pos
+		// just rows
+		start, end int
+		col        int
+	}
+
+	// TODO delete eventually. keep for now...
+	type missingRangeInfo struct {
+		// just cols
+		start, end grid.Pos
 	}
 	ranges := map[int][]missingRange{}
 
@@ -64,48 +69,34 @@ func day15alternate() {
 
 	// does a contain b
 	contains := func(a, b missingRange) bool {
-		return a.start.Row <= b.start.Row &&
-			b.end.Row <= a.end.Row &&
-			a.start.Column <= b.start.Column &&
-			b.end.Column <= a.end.Column
+		return a.start <= b.start &&
+			b.end <= a.end
 	}
 
-	intersectsRow := func(a, b missingRange) bool {
-		return a.start.Column == b.start.Column && a.end.Column == b.end.Column &&
-			a.start.Row <= b.start.Row &&
-			b.start.Row <= a.end.Row
+	intersects := func(a, b missingRange) bool {
+		return a.start <= b.start &&
+			b.start <= a.end
 	}
 
-	// this and everything else assumes column the same
-	// extendLeft := func(a, b missingRange) bool {
-	// 	return a.end.Row-b.start.Row == 1
-	// }
-	// extendRight := func(a, b missingRange) bool {
-	// 	return b.start.Row-a.end.Row == 1
-	// }
-
-	// intersectsColumn := func(a, b missingRange) bool {
-	// 	return a.start.Row == b.start.Row && a.end.Row == b.end.Row &&
-	// 		a.start.Column <= b.start.Column &&
-	// 		b.start.Column <= a.end.Column
-	// }
-
-	maybeAddRange := func(arg missingRange) {
+	maybeAddRange := func(arg missingRangeInfo) {
 
 		candidates := []missingRange{}
 		if arg.start.Column == arg.end.Column {
-			candidates = append(candidates, arg)
+			candidates = append(candidates, missingRange{
+				start: arg.start.Row, end: arg.end.Row,
+				col: arg.start.Column,
+			})
 			// fmt.Println("keep range per column", r)
 		} else {
 			// need to split range??
 			for c := arg.start.Column; c <= arg.end.Column; c++ {
-				candidates = append(candidates, missingRange{start: grid.NewPos(arg.start.Row, c), end: grid.NewPos(arg.end.Row, c)})
+				candidates = append(candidates, missingRange{start: arg.start.Row, end: arg.end.Row, col: c})
 			}
 			// fmt.Println("split range", r, candidates)
 		}
 
 		for _, r := range candidates {
-			currentCol := r.start.Column
+			currentCol := r.col
 			if currentCol != searchy {
 				continue
 			}
@@ -117,8 +108,8 @@ func day15alternate() {
 			toAdd := true
 			for idx, existing := range currentRanges {
 				log := false
-				if r.end.Column == searchy {
-					log = true
+				if currentCol == searchy {
+					// log = true
 				}
 
 				if contains(existing, r) {
@@ -142,7 +133,7 @@ func day15alternate() {
 				}
 
 				// intersects + r bigger
-				if intersectsRow(existing, r) {
+				if intersects(existing, r) {
 					if log {
 						fmt.Println("intersects update end", existing, r)
 					}
@@ -160,7 +151,7 @@ func day15alternate() {
 				}
 
 				// intersects + existing bigger
-				if intersectsRow(r, existing) {
+				if intersects(r, existing) {
 					if log {
 						fmt.Println("intersects upadte new", existing, r)
 					}
@@ -177,50 +168,20 @@ func day15alternate() {
 					break
 				}
 
-				// if extendLeft(existing, r) {
-				// 	if log {
-				// 		fmt.Println("extends left", existing, r)
-				// 	}
-				// 	// extend the left
-				// 	currentRanges[idx] = missingRange{
-				// 		start: r.start,
-				// 		end:   existing.end,
-				// 	}
-				// 	ranges[currentCol] = currentRanges
-				// 	if log {
-				// 		fmt.Println("new val", currentRanges[idx])
-				// 	}
-				// 	toAdd = false
-				// 	break
-				// }
-				// if extendRight(existing, r) {
-				// 	if log {
-				// 		fmt.Println("extends right", existing, r)
-				// 	}
-				// 	// extend the left
-				// 	currentRanges[idx] = missingRange{
-				// 		start: existing.start,
-				// 		end:   r.end,
-				// 	}
-				// 	ranges[currentCol] = currentRanges
-				// 	if log {
-				// 		fmt.Println("new val", currentRanges[idx])
-				// 	}
-				// 	toAdd = false
-				// 	break
-				// }
-
 			}
 
 			if toAdd {
-				if r.end.Column == searchy {
+				if r.end == searchy {
 					// fmt.Println("new", ranges, r)
 				}
 				fmt.Println("adding", r)
 				currentRanges = append(currentRanges, r)
 				ranges[currentCol] = currentRanges
+				if currentCol == searchy {
+					// fmt.Println("new", ranges, r)
+					// fmt.Println(len(currentRanges))
+				}
 			}
-			// fmt.Println(len(ranges))
 		}
 
 	}
@@ -233,6 +194,10 @@ func day15alternate() {
 
 		dist := mandistance(sensor, beacon)
 
+		// o(n2) algorithm in here not working
+		// need to change this range algo to be col based
+		// ignore rows...
+		// fmt.Println(dist)
 		for i := 0; i <= dist; i++ {
 			delta := dist - i
 
@@ -241,7 +206,7 @@ func day15alternate() {
 
 			for _, col := range cols {
 				maybeAddRange(
-					missingRange{
+					missingRangeInfo{
 						start: grid.NewPos(
 							sensor.Row-delta,
 							col,
@@ -264,7 +229,7 @@ func day15alternate() {
 			}
 
 			for _, row := range rows {
-				maybeAddRange(missingRange{
+				maybeAddRange(missingRangeInfo{
 					start: grid.NewPos(
 						row,
 						sensor.Column-delta,
@@ -291,18 +256,10 @@ func day15alternate() {
 	// old answer
 	fmt.Println("old answer", len(searchfor))
 
-	// var potentialranges []missingRange
-
-	// for _, v := range ranges {
-	// 	if v.start.Column >= searchy && v.end.Column <= searchy {
-	// 		potentialranges = append(potentialranges, v)
-	// 	}
-	// }
-	// do we wanna change it so ranges are stored per column??
 	potentialranges := ranges[searchy]
 
 	sort.Slice(potentialranges, func(i, j int) bool {
-		return potentialranges[i].start.Row < potentialranges[j].start.Row
+		return potentialranges[i].start < potentialranges[j].start
 	})
 
 	var result []missingRange
@@ -321,12 +278,12 @@ func day15alternate() {
 
 	lastend := -1
 	for i, v := range result {
-		sum += (v.end.Row - v.start.Row) + 1
+		sum += (v.end - v.start) + 1
 
-		if i != 0 && lastend > v.start.Row {
-			sum -= (lastend + 1 - v.start.Row)
+		if i != 0 && lastend > v.start {
+			sum -= (lastend + 1 - v.start)
 		}
-		lastend = v.end.Row
+		lastend = v.end
 	}
 
 	for v := range where {
