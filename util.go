@@ -132,6 +132,20 @@ func max(slice []int) int {
 	return max
 }
 
+// TODO comparable
+func uniq(slice []int) []int {
+	m := make(map[int]bool)
+	ret := []int{}
+	for _, v := range slice {
+		if m[v] {
+			continue
+		}
+		ret = append(ret, v)
+		m[v] = true
+	}
+	return ret
+}
+
 func min64(slice []int64) int64 {
 	var min int64
 	min = math.MaxInt64
