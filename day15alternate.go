@@ -27,8 +27,6 @@ func day15alternate() {
 	sensors := []grid.Pos{}
 	beacons := []grid.Pos{}
 
-	searchfor := map[grid.Pos]bool{}
-
 	for _, line := range lines {
 		parts := strings.Split(line, " ")
 		sensor := grid.NewPos(parse(parts[2]), parse(parts[3]))
@@ -55,17 +53,6 @@ func day15alternate() {
 
 	// searchy := 10
 	searchy := 2000000
-
-	// addMaybe := func(r, c int) {
-	// 	p := grid.NewPos(r, c)
-	// 	_, ok := where[p]
-	// 	if ok {
-	// 		return
-	// 	}
-	// 	if c == searchy {
-	// 		searchfor[p] = true
-	// 	}
-	// }
 
 	// does a contain b
 	contains := func(a, b missingRange) bool {
@@ -180,9 +167,6 @@ func day15alternate() {
 
 		dist := mandistance(sensor, beacon)
 
-		// o(n2) algorithm in here not working
-		// need to change this range algo to be col based
-		// ignore rows...
 		// fmt.Println(dist)
 		for i := 0; i <= dist; i++ {
 			delta := dist - i
@@ -202,41 +186,33 @@ func day15alternate() {
 						),
 					})
 
-				// if col != searchy {
-				// 	continue
-				// }
-				// for r := delta; r >= 0; r-- {
-				// 	addMaybe(sensor.Row-r, col)
-				// }
-				// for r := delta; r >= 0; r-- {
-				// 	addMaybe(sensor.Row+r, col)
-				// }
 			}
 		}
 	}
 
-	// old answer
-	fmt.Println("old answer", len(searchfor))
+	for k, potentialranges := range ranges {
 
-	potentialranges := ranges[searchy]
+		sort.Slice(potentialranges, func(i, j int) bool {
+			return potentialranges[i].start < potentialranges[j].start
+		})
 
-	sort.Slice(potentialranges, func(i, j int) bool {
-		return potentialranges[i].start < potentialranges[j].start
-	})
-
-	var result []missingRange
-	for _, v := range potentialranges {
-		add := true
-		for _, safe := range result {
-			if contains(safe, v) {
-				add = false
-				break
+		var result []missingRange
+		for _, v := range potentialranges {
+			add := true
+			for _, safe := range result {
+				if contains(safe, v) {
+					add = false
+					break
+				}
+			}
+			if add {
+				result = append(result, v)
 			}
 		}
-		if add {
-			result = append(result, v)
-		}
+		ranges[k] = result
 	}
+
+	result := ranges[searchy]
 
 	lastend := -1
 	for i, v := range result {
