@@ -27,6 +27,7 @@ func day15alternate() {
 	beacons := []grid.Pos{}
 
 	searchfor := map[grid.Pos]bool{}
+
 	for _, line := range lines {
 		parts := strings.Split(line, " ")
 		sensor := grid.NewPos(parse(parts[2]), parse(parts[3]))
@@ -45,45 +46,33 @@ func day15alternate() {
 		sensor := sensors[i]
 		beacon := beacons[i]
 
-		log := false
-
 		dist := mandistance(sensor, beacon)
 
 		for i := 0; i <= dist; i++ {
 			delta := dist - i
-			if log {
-				fmt.Println(delta)
-			}
 
 			rows := uniq([]int{sensor.Row + i, sensor.Row, sensor.Row - i})
 			cols := uniq([]int{sensor.Column + i, sensor.Column, sensor.Column - i})
 
+			addMaybe := func(r, c int) {
+				p := grid.NewPos(r, c)
+				_, ok := where[p]
+				if ok {
+					return
+				}
+				if c == searchy {
+					searchfor[p] = true
+				}
+			}
 			for _, col := range cols {
 				if col != searchy {
 					continue
 				}
 				for r := delta; r >= 0; r-- {
-					newr := sensor.Row - r
-					p := grid.NewPos(newr, col)
-					_, ok := where[p]
-					if !ok {
-						if log {
-							fmt.Println(p)
-						}
-						searchfor[p] = true
-					}
+					addMaybe(sensor.Row-r, col)
 				}
 				for r := delta; r >= 0; r-- {
-					newr := sensor.Row + r
-
-					p := grid.NewPos(newr, col)
-					_, ok := where[p]
-					if !ok {
-						if log {
-							fmt.Println(p)
-						}
-						searchfor[p] = true
-					}
+					addMaybe(sensor.Row+r, col)
 				}
 			}
 
@@ -92,27 +81,10 @@ func day15alternate() {
 					continue
 				}
 				for c := delta; c >= 0; c-- {
-					newc := sensor.Column - c
-					p := grid.NewPos(row, newc)
-					_, ok := where[p]
-					if !ok {
-						if log {
-							fmt.Println(p)
-						}
-						searchfor[p] = true
-					}
+					addMaybe(row, sensor.Column-c)
 				}
 				for c := delta; c >= 0; c-- {
-					newc := sensor.Column + c
-
-					p := grid.NewPos(row, newc)
-					_, ok := where[p]
-					if !ok {
-						if log {
-							fmt.Println(p)
-						}
-						searchfor[p] = true
-					}
+					addMaybe(row, sensor.Column+c)
 				}
 			}
 		}
