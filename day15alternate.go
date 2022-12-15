@@ -171,13 +171,11 @@ func day15alternate() {
 			}
 
 			if toAdd {
-				if r.end == searchy {
-					// fmt.Println("new", ranges, r)
-				}
-				fmt.Println("adding", r)
 				currentRanges = append(currentRanges, r)
 				ranges[currentCol] = currentRanges
 				if currentCol == searchy {
+					// fmt.Println("new", ranges, r)
+					// fmt.Println("adding", r)
 					// fmt.Println("new", ranges, r)
 					// fmt.Println(len(currentRanges))
 				}
@@ -201,7 +199,6 @@ func day15alternate() {
 		for i := 0; i <= dist; i++ {
 			delta := dist - i
 
-			rows := uniq([]int{sensor.Row + i, sensor.Row, sensor.Row - i})
 			cols := uniq([]int{sensor.Column + i, sensor.Column, sensor.Column - i})
 
 			for _, col := range cols {
@@ -227,29 +224,6 @@ func day15alternate() {
 				// 	addMaybe(sensor.Row+r, col)
 				// }
 			}
-
-			for _, row := range rows {
-				maybeAddRange(missingRangeInfo{
-					start: grid.NewPos(
-						row,
-						sensor.Column-delta,
-					),
-					end: grid.NewPos(
-						row,
-						sensor.Column+delta,
-					),
-				})
-
-				// if sensor.Column != searchy {
-				// 	continue
-				// }
-				// for c := delta; c >= 0; c-- {
-				// 	addMaybe(row, sensor.Column-c)
-				// }
-				// for c := delta; c >= 0; c-- {
-				// 	addMaybe(row, sensor.Column+c)
-				// }
-			}
 		}
 	}
 
@@ -262,22 +236,8 @@ func day15alternate() {
 		return potentialranges[i].start < potentialranges[j].start
 	})
 
-	var result []missingRange
-	for _, v := range potentialranges {
-		add := true
-		for _, safe := range result {
-			if contains(safe, v) {
-				add = false
-				break
-			}
-		}
-		if add {
-			result = append(result, v)
-		}
-	}
-
 	lastend := -1
-	for i, v := range result {
+	for i, v := range potentialranges {
 		sum += (v.end - v.start) + 1
 
 		if i != 0 && lastend > v.start {
@@ -292,6 +252,6 @@ func day15alternate() {
 		}
 	}
 
-	fmt.Println(result)
+	fmt.Println(potentialranges)
 	fmt.Println(sum)
 }
