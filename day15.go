@@ -27,45 +27,30 @@ func day15() {
 	missing := make(map[grid.Pos]rune)
 
 	rows := []int{}
-	cols := []int{}
 	sensors := []grid.Pos{}
-	// beacons := []grid.Pos{}
 
-	// existingct := map[int]int{}
-	// nothingcts := map[int]
 	for _, line := range lines {
 		parts := strings.Split(line, " ")
-		// fmt.Println(parts[2], parts[3], parts[8], parts[9])
 		sensor := grid.NewPos(parse(parts[2]), parse(parts[3]))
 		beacon := grid.NewPos(parse(parts[8]), parse(parts[9]))
 		where[sensor] = 'S'
 		where[beacon] = 'B'
 
-		// existingct[sensor.Row]++
-		// existingct[beacon.Row]++
-		// dist := mandistance(sensor, beacon)
-		dist[sensor] = mandistance(sensor, beacon)
-		// fmt.Println(dist)
+		dist[sensor] = mandistance(beacon, sensor)
 
 		rows = append(rows, sensor.Row, beacon.Row)
-		cols = append(cols, sensor.Column, beacon.Column)
 
 		sensors = append(sensors, sensor)
-		// beacons = append(beacons, beacon)
 	}
-	// fmt.Println(existingct)
 
-	// fmt.Println(dist)
-
-	// fmt.Println(min(rows), max(rows), min(cols), max(cols))
 	c := 10
 	for r := min(rows); r <= max(rows); r++ {
 		// for c := min(cols); c <= max(cols); c++ {
 
-		// log := false
-		// if c == 10 && (r == -2 || r == 14 || r == 24) {
-		// 	log = true
-		// }
+		log := false
+		if r == -2 || r == 14 || r == 24 {
+			log = true
+		}
 		pos := grid.NewPos(r, c)
 		_, ok := where[pos]
 		// sensor or beacon, nothing to do here
@@ -73,12 +58,18 @@ func day15() {
 			// if log {
 			// 	fmt.Printf("something %v at %v \n", v, pos)
 			// }
+			// fmt.Println("existing", pos)
 			continue
 		}
 		for _, sensor := range sensors {
 			newdist := mandistance(pos, sensor)
-			if newdist <= dist[sensor] {
+			// tie logic means something else is broken
+			// There is never a tie where two beacons are the same distance to a sensor.
+			if newdist < dist[sensor] {
+				// fmt.Println(pos)
 				missing[pos] = '#'
+			} else if log {
+				fmt.Printf("conflict pos %v sensor %v newdist %d existing dist %d \n", pos, sensor, newdist, dist[sensor])
 			}
 			// else if log {
 			// 	// fmt.Printf("distance fail %d pos %v mandist %d \n", newdist, pos, dist[sensor])
@@ -87,7 +78,7 @@ func day15() {
 		// }
 	}
 
-	// fmt.Println(len(missing))
+	// // fmt.Println(len(missing))
 	colct := map[int]int{}
 	for k := range missing {
 		ct := colct[k.Column]
@@ -99,4 +90,5 @@ func day15() {
 	// // fmt.Println(where)
 	// fmt.Println(len(colct))
 	fmt.Println(colct[c])
+	// fmt.Println(ct)
 }
