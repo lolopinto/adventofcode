@@ -250,3 +250,23 @@ func mapify[T comparable](list []T) map[T]bool {
 	}
 	return m
 }
+
+// insert in a slice at pos
+func insert[T any](slice []T, idx int, val T) []T {
+	if len(slice) == idx {
+		// empty or appending to end
+		return append(slice, val)
+	}
+
+	slice = append(slice[:idx+1], slice[idx:]...)
+	slice[idx] = val
+	return slice
+}
+
+// note if using this while iterating through a slice, do idx-- afterwards
+func remove[T any](slice []T, idx int) []T {
+	if idx+1 == len(slice) {
+		return slice[:idx]
+	}
+	return append(slice[:idx], slice[idx+1:]...)
+}

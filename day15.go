@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/lolopinto/adventofcode2020/grid"
@@ -46,8 +45,6 @@ func day15() {
 
 	ranges := map[int][]missingRange{}
 
-	miny := 0
-
 	// example
 	// searchy := 10
 	// maxy := 20
@@ -58,21 +55,30 @@ func day15() {
 
 	// does a contain b
 	contains := func(a, b missingRange) bool {
-		return a.start <= b.start &&
-			b.end <= a.end
+		return a.start <= b.start && b.end <= a.end
 	}
 
 	intersects := func(a, b missingRange) bool {
-		return a.start <= b.start &&
-			b.start <= a.end
+		return a.start <= b.start && b.start <= a.end
 	}
 
 	maybeAddRange := func(currentCol int, r missingRange) {
 
 		currentRanges := ranges[currentCol]
-		if currentRanges == nil {
-			currentRanges = []missingRange{}
+
+		// instead of needing to sort and check contains later, check rest of slice and remove if future element is contained
+		checkOverlap := func(idx int) {
+			for idx2 := idx + 1; idx2 < len(currentRanges); idx2++ {
+				v := currentRanges[idx2]
+				if contains(currentRanges[idx], v) {
+					currentRanges = remove(currentRanges, idx2)
+					ranges[currentCol] = currentRanges
+					//since removed elem from list
+					idx2--
+				}
+			}
 		}
+
 		for idx, existing := range currentRanges {
 
 			if contains(existing, r) {
@@ -83,7 +89,7 @@ func day15() {
 			if contains(r, existing) {
 				// update existing
 				currentRanges[idx] = r
-				ranges[currentCol] = currentRanges
+				checkOverlap(idx)
 				return
 			}
 
@@ -95,7 +101,7 @@ func day15() {
 					start: existing.start,
 					end:   r.end,
 				}
-				ranges[currentCol] = currentRanges
+				checkOverlap(idx)
 				return
 			}
 
@@ -107,7 +113,15 @@ func day15() {
 					start: r.start,
 					end:   existing.end,
 				}
+				checkOverlap(idx)
+				return
+			}
+
+			// insert in position to avoid needing to sort
+			if r.start < existing.end {
+				currentRanges = insert(currentRanges, idx, r)
 				ranges[currentCol] = currentRanges
+				checkOverlap(idx)
 				return
 			}
 		}
@@ -140,31 +154,6 @@ func day15() {
 		}
 	}
 
-	// fix any duplicate ranges so that we end up with something easily parseable
-	// sort ranges and remove ranges already contained in sorted version
-
-	for k, potentialranges := range ranges {
-
-		sort.Slice(potentialranges, func(i, j int) bool {
-			return potentialranges[i].start < potentialranges[j].start
-		})
-
-		var result []missingRange
-		for _, v := range potentialranges {
-			add := true
-			for _, safe := range result {
-				if contains(safe, v) {
-					add = false
-					break
-				}
-			}
-			if add {
-				result = append(result, v)
-			}
-		}
-		ranges[k] = result
-	}
-
 	result := ranges[searchy]
 
 	lastend := -1
@@ -187,10 +176,9 @@ func day15() {
 
 	fmt.Println("part 1:", sum)
 
-	for col, cands := range ranges {
-		if col > maxy || col < miny || len(cands) == 1 {
-			continue
-		}
+	for col := 0; col <= maxy; col++ {
+		cands := ranges[col]
+
 		lastend := -1
 		// search for the missing beacon
 		for i, c := range cands {
