@@ -67,12 +67,19 @@ func day16() {
 		}
 	}
 
-	best := 0
+	best1 := 0
+	best2 := 0
 	opened := map[string]bool{
 		"AA": true,
 	}
-	traverse(valves["AA"], valves, opened, 29, 0, &best)
-	fmt.Println(best)
+	// part 1
+	traverse(valves["AA"], valves, opened, 29, 0, &best1)
+
+	// part 2
+	traverseElephant(valves["AA"], valves, opened, 25, 0, &best2, false)
+
+	fmt.Println("part 1", best1)
+	fmt.Println("part 2", best2)
 }
 
 // traverse based on depths
@@ -95,6 +102,33 @@ func traverse(curr *valve, valves map[string]*valve, opened map[string]bool, dep
 		for v, new_depth := range valves[curr.name].paths {
 			if !opened[v] {
 				traverse(valves[v], valves, opened, depth-new_depth, current, best)
+			}
+		}
+	}
+}
+
+func traverseElephant(curr *valve, valves map[string]*valve, opened map[string]bool, depth, current int, best *int, elephant bool) {
+	if current > *best {
+		*best = current
+	}
+
+	if depth <= 0 {
+		return
+	}
+
+	if !opened[curr.name] {
+		opened2 := copyOpened(opened)
+		opened2[curr.name] = true
+		current += (depth * curr.flowRate)
+		traverseElephant(curr, valves, opened2, depth-1, current, best, elephant)
+		if !elephant {
+			// elephant starts here
+			traverseElephant(valves["AA"], valves, opened2, 25, current, best, true)
+		}
+	} else {
+		for v, new_depth := range valves[curr.name].paths {
+			if !opened[v] {
+				traverseElephant(valves[v], valves, opened, depth-new_depth, current, best, elephant)
 			}
 		}
 	}
