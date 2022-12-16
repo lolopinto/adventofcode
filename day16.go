@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"strings"
 )
@@ -10,28 +9,38 @@ import (
 type valve struct {
 	name     string
 	flowRate int
-	valves   []string
+	tunnels  map[string]bool
+	paths    map[string]int
 }
 
-func (v *valve) canOpen() bool {
-	return v.flowRate != 0
-}
-
-type valveOpenInfo struct {
-	valve        *valve
-	minuteOpened int
+// get the depth to each destination from the given tunnels
+// if in given list of tunnels, would be 1
+// otherwise, go through next set of tunnels till we find it
+func getDepthToPath(valves map[string]*valve, tunnels map[string]bool, dest string) int {
+	depth := 1
+	for {
+		next_tunnels := map[string]bool{}
+		for item := range tunnels {
+			if item == dest {
+				return depth
+			}
+			for item2 := range valves[item].tunnels {
+				next_tunnels[item2] = true
+			}
+		}
+		tunnels = next_tunnels
+		depth += 1
+	}
 }
 
 func day16() {
 	lines := readFile("day16input")
 
-	m := map[string]*valve{}
+	valves := map[string]*valve{}
 	r := regexp.MustCompile(`Valve (.+) has flow rate=(.+); (?:tunnels|tunnel) (?:lead|leads) to (?:valves|valve) (.+)`)
 
-	// var curr *valve
-	// open := []valve{}
+	openable := []string{}
 
-	openableCt := 0
 	for _, line := range lines {
 		match := r.FindStringSubmatch(line)
 		if match == nil {
@@ -40,82 +49,59 @@ func day16() {
 		v := &valve{
 			name:     match[1],
 			flowRate: atoi(match[2]),
-			valves:   strings.Split(match[3], ", "),
+			tunnels:  mapify(strings.Split(match[3], ", ")),
+			paths:    map[string]int{},
 		}
 		if v.flowRate > 0 {
-			openableCt++
+			openable = append(openable, v.name)
 		}
-		// fmt.Println("flow rate", v.name, v.flowRate, v.valves)
-		m[v.name] = v
+		valves[v.name] = v
+	}
+	beginning := openable[:]
+	beginning = append(beginning, "AA")
+	for _, v := range beginning {
+		for _, v2 := range openable {
+			if v != v2 {
+				valves[v].paths[v2] = getDepthToPath(valves, valves[v].tunnels, v2)
+			}
+		}
 	}
 
-	open := map[string]*valveOpenInfo{}
-
-	// always start at A
-
-	start := m["AA"]
-	// move if we cannot open
-	fmt.Println(traverseValves(m["AA"], m, openableCt, open, 1, !start.canOpen()))
+	best := 0
+	opened := map[string]bool{
+		"AA": true,
+	}
+	traverse(valves["AA"], valves, opened, 29, 0, &best)
+	fmt.Println(best)
 }
 
-// TODO update logic to account for opening early. seems like it'll matter in part 2
-
-func traverseValves(curr *valve, valves map[string]*valve, openableCt int, open map[string]*valveOpenInfo, minute int, move bool) int {
-	// fmt.Println(curr.name, minute, move)
-	if minute == 31 || len(open) == openableCt {
-		sum := 0
-		names := []string{}
-		for _, v := range open {
-			// fmt.Println("open", v.valve.name, v.minuteOpened, v.valve.flowRate)
-			sum += ((30 - v.minuteOpened) * v.valve.flowRate)
-			names = append(names, v.valve.name)
-		}
-		if sum == 1642 {
-			if len(names) > 5 {
-				fmt.Println("open", names)
-				for _, v := range open {
-					fmt.Println("v", v.minuteOpened, v.valve.name, v.valve.flowRate)
-				}
-			}
-		}
-		return sum
+// traverse based on depths
+// inspired by a solution on reddit since what i was doing wasn't working
+func traverse(curr *valve, valves map[string]*valve, opened map[string]bool, depth, current int, best *int) {
+	if current > *best {
+		*best = current
 	}
 
-	if move {
-		// todo move to all combinations, do math and see which is the max
-		// this would do all possibilities here and return up
-		max := math.MinInt
-		for _, cand := range curr.valves {
-			moveTo := valves[cand]
-			// fmt.Printf("moveFrom %s moveTo %s\n", curr.name, moveTo.name)
+	if depth <= 0 {
+		return
+	}
 
-			// if move.To. flowRate == 0, move instead of opening
-			v := traverseValves(moveTo, valves, openableCt, open, minute+1, !moveTo.canOpen())
-			if v > max {
-				max = v
-			}
-		}
-		return max
-		// moveTo := valves[curr.valves[0]]
-		// fmt.Printf("moveFrom %s moveTo %s\n", curr.name, moveTo.name)
-		// return traverseValves(moveTo, valves, open, minute+1, false)
+	if !opened[curr.name] {
+		opened2 := copyOpened(opened)
+		opened2[curr.name] = true
+		current += (depth * curr.flowRate)
+		traverse(curr, valves, opened2, depth-1, current, best)
 	} else {
-		vInfo := open[curr.name]
-		// not open and worth opening
-		newOpen := open
-		if vInfo == nil && curr.flowRate > 0 {
-			newOpen = copyOpenValves(open)
-			newOpen[curr.name] = &valveOpenInfo{
-				minuteOpened: minute,
-				valve:        curr,
+		for v, new_depth := range valves[curr.name].paths {
+			if !opened[v] {
+				traverse(valves[v], valves, opened, depth-new_depth, current, best)
 			}
 		}
-		return traverseValves(curr, valves, openableCt, newOpen, minute+1, true)
 	}
 }
 
-func copyOpenValves(open map[string]*valveOpenInfo) map[string]*valveOpenInfo {
-	ret := map[string]*valveOpenInfo{}
+func copyOpened(open map[string]bool) map[string]bool {
+	ret := make(map[string]bool, len(open))
 	for k, v := range open {
 		ret[k] = v
 	}

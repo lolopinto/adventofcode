@@ -242,3 +242,11 @@ func windowed[T any](list []T, n int) [][]T {
 	}
 	return ret
 }
+
+func mapify[T comparable](list []T) map[T]bool {
+	m := make(map[T]bool, len(list))
+	for _, v := range list {
+		m[v] = true
+	}
+	return m
+}
