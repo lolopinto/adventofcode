@@ -6,6 +6,56 @@ import (
 	"strings"
 )
 
+type Tower struct {
+	// stored and accessed in reverse order
+	items []string
+}
+
+func (t *Tower) addRock(rock []string) {
+	// do we need to allocate a lot just in case?
+	t.items = append(t.items, rock...)
+}
+
+func (t *Tower) len() int {
+	return len(t.items)
+}
+
+func (t *Tower) get(idx int) string {
+	// fmt.Println("input ", idx)
+	idx = t.len() - 1 - idx
+	// fmt.Println("accessing ", idx)
+	return t.items[idx]
+}
+
+func (t *Tower) set(idx int, value string) {
+	idx = t.len() - 1 - idx
+	t.items[idx] = value
+}
+
+func (t *Tower) removeAt(idx int) {
+	idx = t.len() - 1 - idx
+	t.items = remove(t.items, idx)
+}
+
+func (t *Tower) getSlice(idx, length int) []string {
+	idx = t.len() - 1 - idx
+
+	ret := make([]string, length)
+	for i := 0; i < length; i++ {
+		new_idx := idx - i
+		ret[i] = t.items[new_idx]
+	}
+	return ret
+}
+
+func (t *Tower) print(s string) {
+	// fmt.Println("printing tower ", s)
+	// for j := len(t.items) - 1; j >= 0; j-- {
+	// 	line := t.items[j]
+	// 	fmt.Println(line)
+	// }
+}
+
 func day17() {
 	emptyline := "......."
 
@@ -89,9 +139,11 @@ func day17() {
 			if len(line) != 7 {
 				panic(fmt.Errorf("invalid line %s of length %d", line, len(line)))
 			}
-			current = append(current, line)
+			// flipped with tower being reversed
+			current = append([]string{line}, current...)
 		}
-		current = append(current, threelines...)
+		// flipped with tower being reversed now
+		current = append(threelines, current...)
 
 		rockmap[idx] = current
 	}
@@ -113,7 +165,8 @@ func day17() {
 	// tower := [][]string{{floor}}
 
 	floor := "-------"
-	tower := []string{floor}
+	tower := &Tower{}
+	tower.addRock([]string{floor})
 
 	ct := 0
 	printTower := func(s string) {
@@ -123,10 +176,7 @@ func day17() {
 		// if !strings.HasPrefix(s, "new rock") {
 		// 	// return
 		// }
-		// fmt.Println("printing tower ", s)
-		// for _, line := range tower {
-		// 	fmt.Println(line)
-		// }
+		tower.print(s)
 	}
 
 	//TODO no cache for now in case we don't need it
@@ -189,7 +239,7 @@ func day17() {
 		}
 
 		// new rock at beginning of tower
-		tower = append(rock, tower...)
+		tower.addRock(rock)
 		printTower(fmt.Sprintf("new rock %d", ct))
 		rockStartIndex := 0
 		rockLength := len(rock)
@@ -209,7 +259,7 @@ func day17() {
 					canmove := true
 					replacements := make([]string, rockLength)
 					for i := 0; i < rockLength; i++ {
-						line := tower[rockStartIndex+i]
+						line := tower.get(rockStartIndex + i)
 						// ensure the only thing right of '@' is '.'
 
 						line2, canmove2 := moveRight(line)
@@ -222,7 +272,7 @@ func day17() {
 					if canmove {
 						for i := 0; i < rockLength; i++ {
 							currIdx := rockStartIndex + i
-							tower[currIdx] = replacements[i]
+							tower.set(currIdx, replacements[i])
 						}
 						printTower("after moving right")
 					} else {
@@ -234,7 +284,7 @@ func day17() {
 					replacements := make([]string, rockLength)
 
 					for i := 0; i < rockLength; i++ {
-						line := tower[rockStartIndex+i]
+						line := tower.get(rockStartIndex + i)
 
 						line2, canmove2 := moveLeft(line)
 						if !canmove2 {
@@ -247,7 +297,7 @@ func day17() {
 					if canmove {
 						for i := 0; i < rockLength; i++ {
 							currIdx := rockStartIndex + i
-							tower[currIdx] = replacements[i]
+							tower.set(currIdx, replacements[i])
 						}
 
 						printTower("after moving left")
@@ -265,22 +315,24 @@ func day17() {
 
 			// can fall
 			lastRockIdx := rockStartIndex + rockLength - 1
-			if tower[lastRockIdx] == emptyline {
+			if tower.get(lastRockIdx) == emptyline {
 				// remove last
-				tower = remove(tower, lastRockIdx)
+				tower.removeAt(lastRockIdx)
 				rockLength--
 				printTower("rock falls")
 			} else {
 
 				rest := false
 				// fell
-				if tower[0] == floor {
+				if tower.get(0) == floor {
 					rest = true
 				} else {
 
 					// can we fall one to the next line??
-					towerslice := tower[rockStartIndex+1 : rockStartIndex+1+rockLength]
-					rockslice := tower[rockStartIndex : rockStartIndex+rockLength]
+					towerslice := tower.getSlice(rockStartIndex+1, rockLength)
+					// [rockStartIndex+1 : rockStartIndex+1+rockLength]
+					// rockslice := tower[rockStartIndex : rockStartIndex+rockLength]
+					rockslice := tower.getSlice(rockStartIndex, rockLength)
 
 					canFill := canFillSlice(towerslice, rockslice)
 
@@ -293,8 +345,8 @@ func day17() {
 						for j := rockLength - 1; j >= 0; j-- {
 							currLineIdx := rockStartIndex + j
 							nextLineIdx := rockStartIndex + j + 1
-							nextLine := tower[nextLineIdx]
-							currLine := tower[currLineIdx]
+							nextLine := tower.get(nextLineIdx)
+							currLine := tower.get(currLineIdx)
 							currTemp := currLine
 							for i, v := range currLine {
 								if v == '@' {
@@ -302,21 +354,25 @@ func day17() {
 									currTemp = replaceInString(currTemp, i, '.')
 								}
 							}
-							tower[nextLineIdx] = nextLine
-							tower[currLineIdx] = currTemp
+							tower.set(nextLineIdx, nextLine)
+							// tower[nextLineIdx] = nextLine
+							// tower[currLineIdx] = currTemp
+							tower.set(currLineIdx, currTemp)
 						}
 
 						// only remove first line in tower if no "#"
 
-						top := tower[0][:]
+						top := tower.get(0)
 						top = strings.ReplaceAll(top, "@", ".")
 
 						if top == emptyline {
-							tower = remove(tower, 0)
+							tower.removeAt(0)
+							// tower = remove(tower, 0)
 							printTower("fancy falling. removed first line")
 						} else {
 							// replace top line
-							tower[0] = top
+							// tower[0] = top
+							tower.set(0, top)
 							rockStartIndex++
 							printTower("fancy falling, keep top line")
 						}
@@ -326,7 +382,7 @@ func day17() {
 				if rest {
 					for i := 0; i < rockLength; i++ {
 						currIdx := rockStartIndex + i
-						tower[currIdx] = strings.ReplaceAll(tower[currIdx], "@", "#")
+						tower.set(currIdx, strings.ReplaceAll(tower.get(currIdx), "@", "#"))
 					}
 					ct++
 					printTower("resting rock")
@@ -345,5 +401,5 @@ func day17() {
 	printTower("end")
 
 	// no floor
-	fmt.Println(len(tower) - 1)
+	fmt.Println(tower.len() - 1)
 }
