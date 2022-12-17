@@ -270,3 +270,9 @@ func remove[T any](slice []T, idx int) []T {
 	}
 	return append(slice[:idx], slice[idx+1:]...)
 }
+
+func validate(v bool, s string, args ...any) {
+	if !v {
+		panic(fmt.Errorf("%s %v", s, args))
+	}
+}
