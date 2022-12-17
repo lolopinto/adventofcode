@@ -13,7 +13,6 @@ func day17() {
 
 		start := strings.Index(s, "@")
 		end := strings.LastIndex(s, "@")
-		// fallenIdx := strings.Index(s, "#")
 
 		// didn't find it. assume it doesn't interfere
 		if start == -1 || end == -1 {
@@ -23,10 +22,7 @@ func day17() {
 		if start == 0 {
 			return s, false
 		}
-		// interferring fallen rock, can't come through
-		// if fallenIdx != -1 && fallenIdx > end {
-		// 	return s, false
-		// }
+
 		if s[start-1] != '.' {
 			return s, false
 		}
@@ -39,7 +35,6 @@ func day17() {
 	moveRight := func(s string) (string, bool) {
 		start := strings.Index(s, "@")
 		end := strings.LastIndex(s, "@")
-		// fallenIdx := strings.LastIndex(s, "#")
 
 		// didn't find it. assume it doesn't interfere
 		if start == -1 || end == -1 {
@@ -49,10 +44,6 @@ func day17() {
 		if end+1 == len(s) {
 			return s, false
 		}
-		// interferring fallen rock, can't come through
-		// if fallenIdx != -1 && fallenIdx < start {
-		// 	// return s, false
-		// }
 		if s[end+1] != '.' {
 			return s, false
 		}
@@ -62,8 +53,6 @@ func day17() {
 		return s, true
 	}
 
-	// fmt.Println(moveRight("..#.@.."))
-	// return
 	// rock massaged
 	rocks := []string{
 		"@@@@",
@@ -77,7 +66,6 @@ func day17() {
 
 	// this is the building of the rockmap and what happens
 	rockmap := map[int][]string{}
-	// emptyline := "......."
 
 	threelines := []string{
 		emptyline,
@@ -86,7 +74,6 @@ func day17() {
 	}
 	for idx, rock := range rocks {
 		rockLines := strings.Split(rock, "\n")
-		// fmt.Println(rockLines)
 
 		l := 0
 		for _, line := range rockLines {
@@ -144,25 +131,25 @@ func day17() {
 
 	//TODO no cache for now in case we don't need it
 	// since there's now @ and #
-	// cache := map[string]bool{}
+	cache := map[string]bool{}
 
-	// makeCacheKey := func(towerslice, rock []string) string {
-	// 	return fmt.Sprintf("%s|%s", strings.Join(towerslice, ""), strings.Join(rock, ""))
-	// }
+	makeCacheKey := func(towerslice, rock []string) string {
+		return fmt.Sprintf("%s|%s", strings.Join(towerslice, ""), strings.Join(rock, ""))
+	}
 
 	canFillSlice := func(towerslice, rock []string) bool {
-		// // key := makeCacheKey(towerslice, rock)
-		// // v, ok := cache[key]
-		// if ok {
-		// 	return v
-		// }
+		key := makeCacheKey(towerslice, rock)
+		v, ok := cache[key]
+		if ok {
+			// fmt.Println("cache hit", v)
+			return v
+		}
 		topidx := len(towerslice) - 1
 		canfill := true
 		for j := len(rock) - 1; j >= 0; j-- {
 			line := rock[j]
 			if topidx < 0 {
 				break
-				// done
 			}
 			topline := towerslice[topidx]
 			if topline == floor {
@@ -173,7 +160,6 @@ func day17() {
 			for idx, c := range line {
 				// if '.' fine, if '@', assume current rock
 				if c == '@' && topline[idx] == '#' {
-					// fmt.Println("breaking for line", line, string(topline[idx]), idx)
 					lineworks = false
 					break
 				}
@@ -184,7 +170,7 @@ func day17() {
 			}
 			topidx--
 		}
-		// cache[key] = canfill
+		cache[key] = canfill
 		return canfill
 	}
 
@@ -249,23 +235,7 @@ func day17() {
 
 					for i := 0; i < rockLength; i++ {
 						line := tower[rockStartIndex+i]
-						// // ensure the only thing left of '@' is '.'
-						// found_dot := true
-						// found_stable_rock := false
-						// for _, c := range line {
-						// 	if c == '.' {
-						// 		found_dot = true
-						// 	}
-						// 	if c == '#' {
-						// 		found_stable_rock = true
-						// 	}
-						// 	if c == '@' {
-						// 		if found_stable_rock || !found_dot {
-						// 			canmove = false
-						// 			break
-						// 		}
-						// 	}
-						// }
+
 						line2, canmove2 := moveLeft(line)
 						if !canmove2 {
 							canmove = false
@@ -279,17 +249,7 @@ func day17() {
 							currIdx := rockStartIndex + i
 							tower[currIdx] = replacements[i]
 						}
-						// for i := 0; i < rockLength; i++ {
-						// 	currIdx := rockStartIndex + i
-						// 	line := tower[currIdx]
-						// 	// TODO THIS NEEDS TO CHANGE BECAUSE ROCK CAN MOVE WITHIN OTHER ROCKS
-						// 	if line == emptyline {
-						// 		break
-						// 	}
-						// 	if line[0] == '.' {
-						// 		tower[currIdx] = line[1:] + "."
-						// 	}
-						// }
+
 						printTower("after moving left")
 					} else {
 						printTower("skipped moving left")
@@ -312,10 +272,6 @@ func day17() {
 				printTower("rock falls")
 			} else {
 
-				// this is broken. what should be the representation?
-				// if floor, nothing to do
-				// if falling on top of something, need to do something
-
 				rest := false
 				// fell
 				if tower[0] == floor {
@@ -325,30 +281,18 @@ func day17() {
 					// can we fall one to the next line??
 					towerslice := tower[rockStartIndex+1 : rockStartIndex+1+rockLength]
 					rockslice := tower[rockStartIndex : rockStartIndex+rockLength]
-					// for j := len(tower) - 1; j >= len(rock); j-- {
-					// 	begSliceIdx = j - sliceidx
-					// 	towerslice := tower[j-sliceidx : j]
-					fmt.Println("trying fill", towerslice, rockslice)
-					// this is broken too
+
 					canFill := canFillSlice(towerslice, rockslice)
 
-					// if !canfill
-					fmt.Println("can we rest?", !canFill)
+					// fmt.Println("can we rest?", !canFill)
 
 					if !canFill {
 						rest = true
 					} else {
 
-						// TODO: this logic is broken, not replacing correctly...
-						// duprock := rockslice[:]
-						// this isn't working. needs to be done one at a time...
-						// temp := map[int]string{}
 						for j := rockLength - 1; j >= 0; j-- {
-							// for i := 0; i < rockLength; i++ {
-							// currRockIdx := rockStartIndex + i
 							currLineIdx := rockStartIndex + j
 							nextLineIdx := rockStartIndex + j + 1
-							// rockLine := tower[currRockIdx]
 							nextLine := tower[nextLineIdx]
 							currLine := tower[currLineIdx]
 							currTemp := currLine
@@ -359,27 +303,15 @@ func day17() {
 								}
 							}
 							tower[nextLineIdx] = nextLine
-							// // for i,v := range
-							// tower[nextLineIdx] = nextLine
 							tower[currLineIdx] = currTemp
-							// tower[currLineIdx]
 						}
-						// fmt.Println(temp)
-						// os.Exit(0)
-						// for k, v := range temp {
-						// 	tower[k] = v
-						// }
-						// remove first line in tower
+
 						// only remove first line in tower if no "#"
 
 						top := tower[0][:]
 						top = strings.ReplaceAll(top, "@", ".")
-						if ct == 9 {
-							fmt.Println("replace top", tower[0], top, top == emptyline)
-							// os.Exit(1)
-						}
+
 						if top == emptyline {
-							// if strings.Index(top, "#") == -1 {
 							tower = remove(tower, 0)
 							printTower("fancy falling. removed first line")
 						} else {
@@ -388,10 +320,7 @@ func day17() {
 							rockStartIndex++
 							printTower("fancy falling, keep top line")
 						}
-						// os.Exit(0)
-
 					}
-
 				}
 
 				if rest {
@@ -408,8 +337,6 @@ func day17() {
 		}
 
 		// rocks stopped
-		// new rock 3 logic broken...
-		// broken before new rock 4
 		if ct == 2022 {
 			break
 		}
