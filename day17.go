@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -81,12 +82,53 @@ func day17() {
 		}
 	}
 
+	cache := map[string]bool{}
+
+	makeCacheKey := func(towerslice, rock []string) string {
+		return fmt.Sprintf("%s|%s", strings.Join(towerslice, ""), strings.Join(rock, ""))
+	}
+
+	canFillSlice := func(towerslice, rock []string) bool {
+		key := makeCacheKey(towerslice, rock)
+		v, ok := cache[key]
+		if ok {
+			return v
+		}
+		topidx := len(towerslice) - 1
+		canfill := true
+		for j := len(rock) - 1; j >= 0; j-- {
+			line := rock[j]
+			if topidx < 0 {
+				break
+				// done
+			}
+			topline := towerslice[topidx]
+			lineworks := true
+			for idx, c := range line {
+				if c != '.' && topline[idx] != '.' {
+					// fmt.Println("breaking for line", line, string(topline[idx]), idx)
+					lineworks = false
+					break
+				}
+			}
+			if !lineworks {
+				canfill = false
+				break
+			}
+			topidx--
+		}
+		cache[key] = canfill
+		return canfill
+	}
+
 	ct := 0
 	for {
 		idx := ct % 5
 		// rock begins falling
 		rock := rockmap[idx][:]
 		fmt.Println("new rock", rock)
+		// rock should be added to tower immediately
+		// and then we manipulate rock within tower by keeping track of index and @@@
 
 		jettime := true
 		for {
@@ -162,46 +204,79 @@ func day17() {
 				// if falling on top of something, need to do something
 
 				rest := false
+				// fell
 				if tower[0] == floor {
 					rest = true
 				} else {
-					fmt.Println("len rock", len(rock), len(tower))
+					// fmt.Println("len rock", len(rock), len(tower))
 					sliceidx := len(tower)
 					if len(rock) < sliceidx {
 						sliceidx = len(rock)
 					}
-					top := tower[0:sliceidx]
-					fmt.Println("top", top, len(top))
+					// top := tower[0:sliceidx]
+					// fmt.Println("top", top, len(top))
 
-					// check to see if everything here can fill as needed
-					topidx := len(top) - 1
-					canfill := true
-					for j := len(rock) - 1; j >= 0; j-- {
-						line := rock[j]
-						if topidx < 0 {
-							break
-							// done
-						}
-						topline := top[topidx]
-						lineworks := true
-						for idx, c := range line {
-							if c != '.' && topline[idx] != '.' {
-								lineworks = false
-								break
-							}
-						}
-						if !lineworks {
-							canfill = false
+					canFill := false
+					var sliceToFill []string
+					var begSliceIdx int
+
+					// THIS IS WRONG.
+					// IT SHOULD FALL ONE UNIT AND NOT THIS
+					// SO WE NEED TO KNOW WHERE THE ROCK IS IN WITHIN THE TOWER
+					for j := len(tower) - 1; j >= len(rock); j-- {
+						begSliceIdx = j - sliceidx
+						towerslice := tower[j-sliceidx : j]
+						fmt.Println("trying fill", begSliceIdx, j, towerslice, rock)
+						slicefill := canFillSlice(towerslice, rock)
+						if slicefill {
+							sliceToFill = towerslice
+							canFill = true
 							break
 						}
-						topidx--
+
 					}
+					// check to see if everything here can fill as needed
+					// this logic is broken...
 
 					// if !canfill
+					fmt.Println("can we rest?", !canFill)
 
-					rest = !canfill
+					if !canFill {
+						rest = true
+					} else {
+
+						if len(rock) == len(sliceToFill) {
+							for i := 0; i < len(rock); i++ {
+								towerIdx := begSliceIdx + i
+
+								towerLine := tower[towerIdx]
+								// replace every character we can
+								for idx, c := range rock[i] {
+									if c != '.' {
+										towerLine = towerLine[:idx] + "#" + towerLine[idx+1:]
+									}
+								}
+								// reassign back in tower
+								tower[towerIdx] = towerLine
+							}
+							// THIS IS WRONG. IT SHOULD F
+
+							fmt.Println("filled rock")
+							printTower()
+							os.Exit(0)
+
+							ct++
+							break
+						} else {
+							// len not equal. TODO handle
+							printTower()
+							fmt.Println(rock)
+							fmt.Println("fill slice", sliceToFill, begSliceIdx)
+							os.Exit(0)
+						}
+
+					}
 					// check if it can rest next
-					fmt.Println("can we rest?", !canfill)
 					// fmt.Println("top", top)
 					// fmt.Println("curr", rock)
 
@@ -214,7 +289,7 @@ func day17() {
 					// 	}
 					// }
 
-					rest = true
+					// rest = true
 				}
 
 				if rest {
@@ -228,7 +303,7 @@ func day17() {
 
 		// rocks stopped
 		// toDO 2022
-		if ct == 2 {
+		if ct == 10 {
 			break
 		}
 	}
