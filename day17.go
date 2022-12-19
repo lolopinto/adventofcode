@@ -6,13 +6,16 @@ import (
 	"strings"
 )
 
+// don't need this.
+// was one of the crazy things I tried to see if it'll spped things up
+// in this case, we're storing the Tower with a reversed list to see if it'll help
+// simpler to store with a normal list.
 type Tower struct {
 	// stored and accessed in reverse order
 	items []string
 }
 
 func (t *Tower) addRock(rock []string) {
-	// do we need to allocate a lot just in case?
 	t.items = append(t.items, rock...)
 }
 
@@ -20,10 +23,13 @@ func (t *Tower) len() int {
 	return len(t.items)
 }
 
+func (t *Tower) height() int {
+	// no floor
+	return len(t.items) - 1
+}
+
 func (t *Tower) get(idx int) string {
-	// fmt.Println("input ", idx)
 	idx = t.len() - 1 - idx
-	// fmt.Println("accessing ", idx)
 	return t.items[idx]
 }
 
@@ -151,49 +157,16 @@ func day17() {
 	jets := readFile("day17input")[0]
 	currjet := 0
 
-	// running this manually is going to be too slow
-	// what's the caching here?
-	// dfs?
-	// let's do it manually first and then come back
-
-	// rock stopp
-
-	// not doing this yet and will change it if it becomes too slow
-	// let's just do regular string lists for now
-	// tower is represented in reverse order to make it easier to reason above
-	// floor := "xxxxxxx"
-	// tower := [][]string{{floor}}
-
 	floor := "-------"
 	tower := &Tower{}
 	tower.addRock([]string{floor})
 
-	ct := 0
+	rockCount := 0
 	printTower := func(s string) {
-		// if ct < 9 {
-		// 	// return
-		// }
-		// if !strings.HasPrefix(s, "new rock") {
-		// 	// return
-		// }
 		tower.print(s)
 	}
 
-	//TODO no cache for now in case we don't need it
-	// since there's now @ and #
-	cache := map[string]bool{}
-
-	makeCacheKey := func(towerslice, rock []string) string {
-		return fmt.Sprintf("%s|%s", strings.Join(towerslice, ""), strings.Join(rock, ""))
-	}
-
 	canFillSlice := func(towerslice, rock []string) bool {
-		key := makeCacheKey(towerslice, rock)
-		v, ok := cache[key]
-		if ok {
-			// fmt.Println("cache hit", v)
-			return v
-		}
 		topidx := len(towerslice) - 1
 		canfill := true
 		for j := len(rock) - 1; j >= 0; j-- {
@@ -220,27 +193,21 @@ func day17() {
 			}
 			topidx--
 		}
-		cache[key] = canfill
 		return canfill
 	}
 
-	for {
-		idx := ct % 5
-		// rock begins falling
-		rock := make([]string, len(rockmap[idx]))
-		copy(rock, rockmap[idx])
+	seen := map[[2]int][2]int{}
 
-		for _, v := range rock {
-			if v == floor {
-				fmt.Printf("rock %d corrupted", ct)
-				fmt.Println(rock)
-				os.Exit(0)
-			}
-		}
+	for {
+		rock_idx := rockCount % 5
+
+		// rock begins falling
+		rock := make([]string, len(rockmap[rock_idx]))
+		copy(rock, rockmap[rock_idx])
 
 		// new rock at beginning of tower
 		tower.addRock(rock)
-		printTower(fmt.Sprintf("new rock %d", ct))
+		printTower(fmt.Sprintf("new rock %d", rockCount))
 		rockStartIndex := 0
 		rockLength := len(rock)
 
@@ -382,24 +349,57 @@ func day17() {
 				if rest {
 					for i := 0; i < rockLength; i++ {
 						currIdx := rockStartIndex + i
-						tower.set(currIdx, strings.ReplaceAll(tower.get(currIdx), "@", "#"))
+						val := strings.ReplaceAll(tower.get(currIdx), "@", "#")
+						tower.set(currIdx, val)
 					}
-					ct++
+
+					rockCount++
 					printTower("resting rock")
 					break
 				}
 			}
-
 		}
 
 		// rocks stopped
-		if ct == 2022 {
+		// part 1 vs 2 here
+		// part 2 1000000000000
+		// part 1 2022
+		if rockCount == 1000000000000 {
 			break
+		}
+
+		if rockCount > 1000 {
+			// key is rock | jet combos
+			key := [2]int{rock_idx, currjet % len(jets)}
+			v, ok := seen[key]
+			if ok {
+
+				prev_rock := v[0]
+				height := v[1]
+
+				period := rockCount - prev_rock
+
+				// if we've seen this rock|height combo and it's the same modulo with the target, here we go
+				if rockCount%period == 1000000000000%period {
+					// fmt.Println(key, v, height, "period", period)
+					fmt.Println("cycle detected")
+
+					// find where cycle started
+					cycleHeight := tower.height() - height
+					rocksRemainining := 1000000000000 - rockCount
+					cyclesRemaining := (rocksRemainining / period) + 1
+					fmt.Println(height, cycleHeight, cyclesRemaining)
+					fmt.Println("part 2 answer", height+(cycleHeight*cyclesRemaining))
+					os.Exit(0)
+				}
+			} else {
+				// keep track of how many rocks and height we've seen with this rock|height combo
+				seen[key] = [2]int{rockCount, tower.height()}
+			}
 		}
 	}
 
 	printTower("end")
 
-	// no floor
-	fmt.Println(tower.len() - 1)
+	fmt.Println(tower.height())
 }
