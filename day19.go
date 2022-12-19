@@ -188,8 +188,10 @@ func day19() {
 	lines := readFile("day19input")
 	r := regexp.MustCompile(`Each (.+) robot costs (.+)`)
 
+	blueprints := make([]*Blueprint, len(lines))
 	sum := 0
-	for _, line := range lines {
+	product := 1
+	for i, line := range lines {
 		parts := splitLength(line, ": ", 2)
 		number := atoi(splitLength(parts[0], " ", 2)[1])
 		costs := strings.Split(parts[1], ".")
@@ -237,17 +239,28 @@ func day19() {
 
 		cache := map[string]int{}
 		// b.print()
-		geode := runBluePrint(b, 1, 0, "", cache)
+		geode := runBluePrint(b, 1, 24, 0, "", cache)
+
+		blueprints[i] = b
 		sum += (b.number * geode)
 		// fmt.Println(len(cache))
 		fmt.Println("answer", geode)
 	}
 
 	fmt.Println("part 1 sum", sum)
+
+	for _, b := range blueprints[:3] {
+		cache := map[string]int{}
+		// b.print()
+		geode := runBluePrint(b, 1, 32, 0, "", cache)
+		product *= geode
+	}
+	fmt.Println("part 2 answer", product)
+
 }
 
 // eventually need
-func runBluePrint(b *Blueprint, start int, best int, building string, cache map[string]int) int {
+func runBluePrint(b *Blueprint, start, target, best int, building string, cache map[string]int) int {
 
 	key := b.key(start, building)
 	v, ok := cache[key]
@@ -257,7 +270,7 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 	}
 
 	// fmt.Println(start, best)
-	if start > 24 {
+	if start > target {
 		// cache[key] = best
 		return best
 	}
@@ -273,7 +286,7 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 		robot.spend(b2.have)
 
 		v := b2.update(robot.material)
-		v = runBluePrint(b2, start+1, v, r.material, cache)
+		v = runBluePrint(b2, start+1, target, v, r.material, cache)
 		if v > best {
 			best = v
 		}
@@ -331,7 +344,7 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 	// check the don't spend robot route
 	b2 := b.clone()
 	v = b2.update("")
-	v = runBluePrint(b2, start+1, v, "", cache)
+	v = runBluePrint(b2, start+1, target, v, "", cache)
 	if v > best {
 		best = v
 	}
