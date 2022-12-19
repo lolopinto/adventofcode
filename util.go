@@ -280,3 +280,11 @@ func validate(v bool, s string, args ...any) {
 		panic(fmt.Errorf("%s %v", s, args))
 	}
 }
+
+func copyMap[K comparable, V any](m map[K]V) map[K]V {
+	ret := make(map[K]V, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}

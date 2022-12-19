@@ -17,19 +17,9 @@ func (b *Blueprint) clone() *Blueprint {
 	b2 := Blueprint{
 		number: b.number,
 	}
-	b2.robots = make(map[string]Robot, len(b.robots))
-	for k, v := range b.robots {
-		b2.robots[k] = v
-	}
-	b2.have = make(map[string]int, len(b.have))
-	for k, v := range b.have {
-		b2.have[k] = v
-	}
-
-	b2.robotsOwned = make(map[string]int, len(b.robotsOwned))
-	for k, v := range b.robotsOwned {
-		b2.robotsOwned[k] = v
-	}
+	b2.robots = copyMap(b.robots)
+	b2.have = copyMap(b.have)
+	b2.robotsOwned = copyMap(b.robotsOwned)
 
 	return &b2
 }
@@ -67,23 +57,14 @@ func (b *Blueprint) collect() int {
 	return b.have["geode"]
 }
 
-// TODO this doesn't need to be a map
-func (b *Blueprint) update(newRobots map[string]int, best, min int) int {
+func (b *Blueprint) update(building string) int {
 	ret := b.collect()
-	for material, ct := range newRobots {
-		existing := b.robotsOwned[material]
-		existing += ct
-		b.robotsOwned[material] = existing
+	if building != "" {
+		ct := b.robotsOwned[building]
+		b.robotsOwned[building] = ct + 1
 	}
 
 	return ret
-
-	// if v > best {
-	// 	fmt.Println("updating best", v, best, min)
-	// 	// return v
-	// }
-	// return best
-	// fmt.Println("robots owned", b.robotsOwned)
 }
 
 var materials = []string{
@@ -158,36 +139,19 @@ func (b Blueprint) shouldBuild(material string) bool {
 
 	have := b.have[material]
 
-	allsatisfied := true
 	for _, r := range b.robots {
 		for _, cost := range r.costs {
 			if cost.material == material {
-				if have > cost.cost {
-					allsatisfied = false
-					// if material == "ore" {
-					// 	fmt.Println("not building ore", have, cost.cost)
-					// }
-					// return false
+				if have < cost.cost {
+					return true
 				}
 			}
 		}
 	}
-	// for _, cost := range r.costs {
-	// 	// if cost.material == material {
-	// 	have := b.have[cost.material]
-	// 	// already have enough of this, no need to keep building
-	// 	if have > cost.cost {
-	// 		if material == "obsidian" {
-	// 			fmt.Println("not building", have, cost.cost)
-	// 		}
-	// 		return false
-	// 	}
-	// 	// }
-	// }
 
-	// fmt.Println("material", material, b.have[material], r)
-
-	return allsatisfied
+	//  TODO this should be false... to theoretically speed up?
+	// not working...
+	return true
 }
 
 type Robot struct {
@@ -222,10 +186,8 @@ type RobotCost struct {
 
 func day19() {
 	lines := readFile("day19input")
-	// r := regexp.MustCompile(`Blueprint (.+): Each ore robot costs (.+) ore. Each clay robot costs (.+) ore. Each obsidian robot costs (.+) ore and (.+) clay. Each geode robot costs (.+) ore and (.+) obsidian.`)
 	r := regexp.MustCompile(`Each (.+) robot costs (.+)`)
 	for _, line := range lines {
-		// match := r.FindStringSubmatch(line)
 		parts := splitLength(line, ": ", 2)
 		number := atoi(splitLength(parts[0], " ", 2)[1])
 		costs := strings.Split(parts[1], ".")
@@ -246,7 +208,6 @@ func day19() {
 				"clay":     0,
 			},
 		}
-		// fmt.Println(costs, len(costs))
 		for _, cost := range costs {
 			if strings.TrimSpace(cost) == "" {
 				continue
@@ -282,6 +243,7 @@ func day19() {
 
 // eventually need
 func runBluePrint(b *Blueprint, start int, best int, building string, cache map[string]int) int {
+
 	key := b.key(start, building)
 	v, ok := cache[key]
 	if ok {
@@ -297,9 +259,6 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 
 	// fmt.Printf("\nminute %d\n", start)
 	// b.print()
-	newRobots := map[string]int{}
-
-	// spend, material := b.shouldSpend(false)
 
 	skip := make(map[string]bool)
 
@@ -307,19 +266,8 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 		b2 := b.clone()
 		robot := b2.robots[r.material]
 		robot.spend(b2.have)
-		ct := newRobots[robot.material]
-		// fmt.Println()
-		newRobots[robot.material] = ct + 1
-		v := b2.update(newRobots, best, start)
-		// v := b2.have["geode"]
-		// if v > best {
-		// 	best = v
-		// }
-		// if best != v {
-		// 	// fmt.Println("post", start, best, v)
-		// 	// b.print()
-		// }
-		// best = newbest
+
+		v := b2.update(robot.material)
 		v = runBluePrint(b2, start+1, v, r.material, cache)
 		if v > best {
 			best = v
@@ -344,17 +292,21 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 
 		// two away from this, don't do anything
 		// seems wrong
+		// this is back to a weird hack that we just need to figure out a generic way to avoid
+
 		if (material == "obsidian" || material == "geode") && b.twoAway(material, false) {
 			// fmt.Println("two minute away", material)
 			// break
 			for _, cost := range r.costs {
 				skip[cost.material] = true
 			}
-			continue
+			// TODO SHOULD BE WORKING
+			// continue
 		}
 
 		if skip[material] {
-			continue
+			// TODO THIS SHOULD BE WORKING
+			// continue
 		}
 
 		// see if we can afford all and then do every combination
@@ -369,32 +321,11 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 		if afford && should {
 			// fmt.Println("building", material, start)
 			build(r)
-
-			// b2 := b.clone()
-			// robot := b2.robots[r.material]
-			// robot.spend(b2.have)
-			// ct := newRobots[robot.material]
-			// // fmt.Println()
-			// newRobots[robot.material] = ct + 1
-			// b2.update(newRobots)
-			// v := runBluePrint(b2, start+1, best, cache)
-			// if v > best {
-			// 	// v = best
-			// 	best = v
-			// }
-			// break
 		}
 	}
 	// check the don't spend robot route
 	b2 := b.clone()
-	v = b2.update(nil, best, start)
-	// if best != v2 {
-	// 	// fmt.Println("post", start, best, v2)
-	// 	// b.print()
-	// }
-	// if v2 > best {
-	// 	best = v2
-	// }
+	v = b2.update("")
 	v = runBluePrint(b2, start+1, v, "", cache)
 	if v > best {
 		best = v
