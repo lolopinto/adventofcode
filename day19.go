@@ -52,7 +52,6 @@ func (b *Blueprint) collect() int {
 
 		b.have[material] = ct
 	}
-	// fmt.Println("have", b.have)
 
 	return b.have["geode"]
 }
@@ -77,9 +76,6 @@ var materials = []string{
 func (b *Blueprint) key(min int, building string) string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("%d-%d-%s", b.number, min, building))
-	// for m, ct := range b.have {
-	// 	sb.WriteString(fmt.Sprintf("have-%s-%d", m, ct))
-	// }
 	for m, ct := range b.robotsOwned {
 		sb.WriteString(fmt.Sprintf("robots-owned-%s-%d", m, ct))
 	}
@@ -87,39 +83,26 @@ func (b *Blueprint) key(min int, building string) string {
 	return sb.String()
 }
 
-func (b *Blueprint) twoAway(m string, log bool) bool {
+// not being used and doesn't work for part 2 of blueprint...
+func (b *Blueprint) twoAway(m string) bool {
 	r := b.robots[m]
 
-	// fmt.Println("checking two away for ", m)
 	for _, cost := range r.costs {
 		targetDiff := cost.cost - b.have[cost.material]
 		owned := b.robotsOwned[cost.material]
 
 		r2 := b.robots[cost.material]
 
-		if log {
-			fmt.Println(cost, b.have)
-		}
-
-		// what to change here to make it work when ore is cheap enough?
 		if cost.material != "ore" && !r2.canAfford(b.have) {
-			if log {
-				fmt.Println("cannot afford", cost.material, r2.canAfford(b.have))
-			}
 			return false
 		}
 
 		if targetDiff < 0 || owned <= 0 {
-			if log {
-				fmt.Println("incorrect numbers", cost.material, targetDiff, owned)
-			}
+
 			return false
 		}
 
 		if targetDiff/owned > 2 {
-			if log {
-				fmt.Println("math", targetDiff, owned)
-			}
 			return false
 		}
 	}
@@ -134,9 +117,6 @@ func (b Blueprint) shouldBuild(material string) bool {
 		return true
 	}
 
-	// r := b.robots[material]
-	// need to find robots where the cost is this material
-
 	have := b.have[material]
 
 	for _, r := range b.robots {
@@ -150,7 +130,7 @@ func (b Blueprint) shouldBuild(material string) bool {
 	}
 
 	//  TODO this should be false... to theoretically speed up?
-	// not working...
+	// NOT WORKING!
 	return true
 }
 
@@ -162,7 +142,6 @@ type Robot struct {
 func (r Robot) canAfford(have map[string]int) bool {
 	for _, cost := range r.costs {
 		v := have[cost.material]
-		// fmt.Println(v, cost.cost)
 		if v < cost.cost {
 			return false
 		}
@@ -188,8 +167,10 @@ func day19() {
 	lines := readFile("day19input")
 	r := regexp.MustCompile(`Each (.+) robot costs (.+)`)
 
+	blueprints := make([]*Blueprint, len(lines))
 	sum := 0
-	for _, line := range lines {
+	product := 1
+	for i, line := range lines {
 		parts := splitLength(line, ": ", 2)
 		number := atoi(splitLength(parts[0], " ", 2)[1])
 		costs := strings.Split(parts[1], ".")
@@ -236,34 +217,36 @@ func day19() {
 		}
 
 		cache := map[string]int{}
-		// b.print()
-		geode := runBluePrint(b, 1, 0, "", cache)
+		geode := runBluePrint(b, 1, 24, 0, "", cache)
+
+		blueprints[i] = b
 		sum += (b.number * geode)
-		// fmt.Println(len(cache))
 		fmt.Println("answer", geode)
 	}
 
 	fmt.Println("part 1 sum", sum)
+
+	for _, b := range blueprints[:3] {
+		cache := map[string]int{}
+		// b.print()
+		geode := runBluePrint(b, 1, 32, 0, "", cache)
+		product *= geode
+	}
+	fmt.Println("part 2 answer", product)
+
 }
 
-// eventually need
-func runBluePrint(b *Blueprint, start int, best int, building string, cache map[string]int) int {
+func runBluePrint(b *Blueprint, start, target, best int, building string, cache map[string]int) int {
 
 	key := b.key(start, building)
 	v, ok := cache[key]
 	if ok {
-		// fmt.Println("cache hit", v)
 		return v
 	}
 
-	// fmt.Println(start, best)
-	if start > 24 {
-		// cache[key] = best
+	if start > target {
 		return best
 	}
-
-	// fmt.Printf("\nminute %d\n", start)
-	// b.print()
 
 	skip := make(map[string]bool)
 
@@ -273,7 +256,7 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 		robot.spend(b2.have)
 
 		v := b2.update(robot.material)
-		v = runBluePrint(b2, start+1, v, r.material, cache)
+		v = runBluePrint(b2, start+1, target, v, r.material, cache)
 		if v > best {
 			best = v
 		}
@@ -282,30 +265,23 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 	// if can afford a geode. do it. and we're done
 	if b.robots["geode"].canAfford(b.have) {
 		build(b.robots["geode"])
-		// fmt.Println(b.have)
-		// fmt.Println("spend geode", start)
 		return best
 	}
 
 	for _, material := range materials {
 		r := b.robots[material]
-		// if material == "geode" && r.canAfford(b.have) {
-		// 	build(r)
-		// 	checkNo = false
-		// 	break
-		// }
 
 		// two away from this, don't do anything
 		// seems wrong
 		// this is back to a weird hack that we just need to figure out a generic way to avoid
-
-		if (material == "obsidian" || material == "geode") && b.twoAway(material, false) {
+		// don't end up using it
+		if (material == "obsidian" || material == "geode") && b.twoAway(material) {
 			// fmt.Println("two minute away", material)
 			// break
 			for _, cost := range r.costs {
 				skip[cost.material] = true
 			}
-			// TODO SHOULD BE WORKING
+			// TODO SHOULD BE WORKING BUT IT'S NOT
 			// continue
 		}
 
@@ -316,22 +292,16 @@ func runBluePrint(b *Blueprint, start int, best int, building string, cache map[
 
 		// see if we can afford all and then do every combination
 
-		// we need a can afford and should afford
-		// shouldn't afford if we already have enough
 		afford := r.canAfford(b.have)
 		should := b.shouldBuild(material)
-		// if afford && !should {
-		// 	fmt.Printf("can afford %s but shouldn't\n", material)
-		// }
 		if afford && should {
-			// fmt.Println("building", material, start)
 			build(r)
 		}
 	}
 	// check the don't spend robot route
 	b2 := b.clone()
 	v = b2.update("")
-	v = runBluePrint(b2, start+1, v, "", cache)
+	v = runBluePrint(b2, start+1, target, v, "", cache)
 	if v > best {
 		best = v
 	}
