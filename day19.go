@@ -51,7 +51,7 @@ func (b *Blueprint) print() {
 	// }
 }
 
-func (b *Blueprint) update(newRobots map[string]int, best, min int) int {
+func (b *Blueprint) collect() int {
 	for material, many := range b.robotsOwned {
 		if material == "" {
 			fmt.Println(b.robotsOwned, b.have)
@@ -64,13 +64,20 @@ func (b *Blueprint) update(newRobots map[string]int, best, min int) int {
 	}
 	// fmt.Println("have", b.have)
 
+	return b.have["geode"]
+}
+
+// TODO this doesn't need to be a map
+func (b *Blueprint) update(newRobots map[string]int, best, min int) int {
+	ret := b.collect()
 	for material, ct := range newRobots {
 		existing := b.robotsOwned[material]
 		existing += ct
 		b.robotsOwned[material] = existing
 	}
 
-	return b.have["geode"]
+	return ret
+
 	// if v > best {
 	// 	fmt.Println("updating best", v, best, min)
 	// 	// return v
@@ -79,9 +86,16 @@ func (b *Blueprint) update(newRobots map[string]int, best, min int) int {
 	// fmt.Println("robots owned", b.robotsOwned)
 }
 
-func (b *Blueprint) key(min int) string {
+var materials = []string{
+	"geode",
+	"obsidian",
+	"clay",
+	"ore",
+}
+
+func (b *Blueprint) key(min int, building string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%d-%d", b.number, min))
+	sb.WriteString(fmt.Sprintf("%d-%d-%s", b.number, min, building))
 	// for m, ct := range b.have {
 	// 	sb.WriteString(fmt.Sprintf("have-%s-%d", m, ct))
 	// }
@@ -129,37 +143,6 @@ func (b *Blueprint) twoAway(m string, log bool) bool {
 		}
 	}
 	return true
-}
-
-func (b *Blueprint) shouldSpend(log bool) (bool, string) {
-	// duh!
-	if b.robots["geode"].canAfford(b.have) {
-		return true, "geode"
-	}
-	if b.twoAway("geode", log) {
-		fmt.Println("two away from geode, don't spend")
-		return false, ""
-	}
-
-	if b.robots["obsidian"].canAfford(b.have) {
-		return true, "obsidian"
-	}
-
-	if b.twoAway("obsidian", log) {
-		fmt.Println("two away from obsidian, don't spend")
-		return false, ""
-	}
-
-	// TODO this may need speial logic at the end...
-	if b.robots["clay"].canAfford(b.have) {
-		return true, "clay"
-	}
-
-	if b.robots["ore"].canAfford(b.have) {
-		return true, "ore"
-	}
-
-	return false, ""
 }
 
 // assumes canAfford
@@ -250,9 +233,17 @@ func day19() {
 		b := &Blueprint{
 			number: number,
 			robots: map[string]Robot{},
-			have:   map[string]int{},
+			have: map[string]int{
+				"ore":      0,
+				"obsidian": 0,
+				"geode":    0,
+				"clay":     0,
+			},
 			robotsOwned: map[string]int{
-				"ore": 1,
+				"ore":      1,
+				"obsidian": 0,
+				"geode":    0,
+				"clay":     0,
 			},
 		}
 		// fmt.Println(costs, len(costs))
@@ -283,33 +274,20 @@ func day19() {
 
 		cache := map[string]int{}
 		// b.print()
-		geode := runBluePrint(b, 1, 0, cache)
+		geode := runBluePrint(b, 1, 0, "", cache)
 		// fmt.Println(len(cache))
 		fmt.Println("answer", geode)
 	}
 }
 
 // eventually need
-func runBluePrint(b *Blueprint, start int, best int, cache map[string]int) int {
-	// key := b.key(start)
-	// v, ok := cache[key]
-	// if ok {
-	// 	// fmt.Println("cache hit", v)
-	// 	return v
-	// }
-
-	materials := []string{
-		"geode",
-		"obsidian",
-		"clay",
-		"ore",
+func runBluePrint(b *Blueprint, start int, best int, building string, cache map[string]int) int {
+	key := b.key(start, building)
+	v, ok := cache[key]
+	if ok {
+		// fmt.Println("cache hit", v)
+		return v
 	}
-
-	// geodeCt := b.have["geode"]
-	// if geodeCt > best {
-	// 	fmt.Println("geodect", start, geodeCt)
-	// 	best = geodeCt
-	// }
 
 	// fmt.Println(start, best)
 	if start > 24 {
@@ -324,25 +302,7 @@ func runBluePrint(b *Blueprint, start int, best int, cache map[string]int) int {
 	// spend, material := b.shouldSpend(false)
 
 	skip := make(map[string]bool)
-	// for _, m := range materials {
-	// 	valid[m] = true
-	// }
 
-	// go in order,
-	// flag some as invalid for this round if need me
-
-	// lol somehow got more with 13 which is invalid
-
-	// check the spend robot route
-
-	// this logic is directionally correct it seems
-	// just missing something
-
-	// need more difs
-	// need a break if we don't need more of any type
-	// e.g. don't need more clay anymore
-
-	// var possibilities []int
 	build := func(r Robot) {
 		b2 := b.clone()
 		robot := b2.robots[r.material]
@@ -360,7 +320,7 @@ func runBluePrint(b *Blueprint, start int, best int, cache map[string]int) int {
 		// 	// b.print()
 		// }
 		// best = newbest
-		v = runBluePrint(b2, start+1, v, cache)
+		v = runBluePrint(b2, start+1, v, r.material, cache)
 		if v > best {
 			best = v
 		}
@@ -387,10 +347,10 @@ func runBluePrint(b *Blueprint, start int, best int, cache map[string]int) int {
 		if (material == "obsidian" || material == "geode") && b.twoAway(material, false) {
 			// fmt.Println("two minute away", material)
 			// break
-			// for _, cost := range r.costs {
-			// 	skip[cost.material] = true
-			// }
-			// continue
+			for _, cost := range r.costs {
+				skip[cost.material] = true
+			}
+			continue
 		}
 
 		if skip[material] {
@@ -427,71 +387,19 @@ func runBluePrint(b *Blueprint, start int, best int, cache map[string]int) int {
 	}
 	// check the don't spend robot route
 	b2 := b.clone()
-	v2 := b2.update(nil, best, start)
-	if best != v2 {
-		// fmt.Println("post", start, best, v2)
-		// b.print()
-	}
+	v = b2.update(nil, best, start)
+	// if best != v2 {
+	// 	// fmt.Println("post", start, best, v2)
+	// 	// b.print()
+	// }
 	// if v2 > best {
 	// 	best = v2
 	// }
-	v2 = runBluePrint(b2, start+1, v2, cache)
-	if v2 > best {
-		best = v2
+	v = runBluePrint(b2, start+1, v, "", cache)
+	if v > best {
+		best = v
 	}
 
-	// cache[key] = best
+	cache[key] = best
 	return best
-
-	// for _, material := range materials {
-	// 	r := b.robots[material]
-
-	// 	if skip[material] {
-	// 		continue
-	// 	}
-
-	// 	if (material == "obsidian" || material == "geode") && b.twoAway(material, false) {
-	// for _, cost := range r.costs {
-	// 	skip[cost.material] = true
-	// }
-	// continue
-	// // 	}
-
-	// 	if r.canAfford(b.have) {
-	// 		fmt.Println("spend on", material)
-	// 		robot := b.robots[material]
-	// 		robot.spend(b.have)
-	// 		ct := newRobots[robot.material]
-	// 		// fmt.Println()
-	// 		newRobots[robot.material] = ct + 1
-	// 	}
-	// }
-
-	// if spend {
-	// 	if material == "" {
-	// 		panic("invald spend")
-	// 	}
-	// 	// b2 = b.clone()
-	// 	fmt.Println("spend on", material)
-	// 	robot := b.robots[material]
-	// 	robot.spend(b.have)
-	// 	ct := newRobots[robot.material]
-	// 	// fmt.Println()
-	// 	newRobots[robot.material] = ct + 1
-	// 	// spendCt = runBluePrint(b2, i+1, cache)
-
-	// 	// doesn't
-	// 	// b = b2
-	// 	// } else {
-	// 	// 	fmt.Println("else path")
-	// 	// 	b3 = b.clone()
-	// 	// 	b3.update(nil)
-	// 	// 	noSpendCt = runBluePrint(b3, i+1, cache)
-	// }
-	// b.update(newRobots)
-
-	// }
-	// return b.have["geode"]
-	// cache[key] = b.have["geode"]
-	// return cache[key]
 }
