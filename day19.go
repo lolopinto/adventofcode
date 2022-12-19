@@ -187,6 +187,8 @@ type RobotCost struct {
 func day19() {
 	lines := readFile("day19input")
 	r := regexp.MustCompile(`Each (.+) robot costs (.+)`)
+
+	sum := 0
 	for _, line := range lines {
 		parts := splitLength(line, ": ", 2)
 		number := atoi(splitLength(parts[0], " ", 2)[1])
@@ -236,9 +238,12 @@ func day19() {
 		cache := map[string]int{}
 		// b.print()
 		geode := runBluePrint(b, 1, 0, "", cache)
+		sum += (b.number * geode)
 		// fmt.Println(len(cache))
 		fmt.Println("answer", geode)
 	}
+
+	fmt.Println("part 1 sum", sum)
 }
 
 // eventually need
