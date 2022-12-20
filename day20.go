@@ -1,120 +1,90 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
+// couldn't get this to work for real input for some reason with index math
+// so implemented in javascript. my index math is broken apparently
+// Python would have worked too
 func day20() {
 	lines := readFile("day20input")
 	vals := ints(lines)
-	// brute force but it's not going to work later...
-	dup := make([]int, len(vals))
+	dup_indices := make([]int, len(vals))
 
-	indices := make(map[int]int)
-	copy(dup, vals)
+	indices := make([]int, len(vals))
 	for i := range vals {
 		indices[i] = i
 	}
+	copy(dup_indices, indices)
 
 	getNewIdx := func(i, delta int) int {
-		new_idx := i + delta
-		fmt.Println("getNewIdx", i, delta, new_idx)
-		if new_idx == 0 && delta < 0 {
-			return len(vals) - 1
-		}
-		if new_idx >= len(vals) {
-			return new_idx%len(vals) + 1
-		}
-		if new_idx < 0 {
-			for new_idx < 0 {
-				new_idx = new_idx + len(vals) - 1
-				fmt.Println("for new_idx<0", new_idx)
-			}
+		new_idx := (i + delta) % len(vals)
+		if delta < 0 && new_idx < 0 {
+			new_idx += len(vals) - 1
+		} else if i+delta > len(vals) {
+			new_idx += 1
 		}
 
 		return new_idx
 	}
 
-	getIdx := func(i int) int {
-		if i >= 0 {
-			return i % len(vals)
-		}
-		return i + len(vals)
-	}
-	for _, v := range dup {
-		if v == 0 {
-			continue
-		}
-		for idx, v2 := range vals {
-			if v == v2 {
-				// vals
-
-				new_idx := getNewIdx(idx, v)
-				// fmt.Println("searching for", v)
-				// new_idx := (idx + v) % len(vals)
-				// if new_idx < 0 {
-				// 	getIdx(new)
-				// 	// fmt.Println("negative tODO", new_idx)
-				// }
-				// for new_idx < 0 {
-				// 	new_idx += len(vals) - 1
-				// }
-				// fmt.Println(new_idx)
-				// let's swap!
-				// left := vals[:new_idx]
-
-				// right := vals[new_idx:]
-				// fmt.Println(v, "old", idx, "new", new_idx)
-
-				if new_idx > idx {
-					for i := idx; i <= new_idx-1; i++ {
-						temp := vals[i]
-						vals[i] = vals[i+1]
-						vals[i+1] = temp
-					}
-				} else {
-					// going downwards but really upwards
-					// swap the two numbers and then go just before new_idx
-					// fmt.Println("v downwards", v)
-					if v > 0 {
-						temp := vals[new_idx]
-						vals[new_idx] = vals[idx]
-						vals[idx] = temp
-						// fmt.Println(idx, new_idx)
-						// this feels tooo hacky
-						new_idx += 3
-						// fmt.Println("after swap", vals, idx, new_idx)
-					}
-
-					for i := idx; i >= new_idx-1; i-- {
-						// fmt.Println("start swap", i)
-						temp := vals[getIdx(i)]
-
-						vals[getIdx(i)] = vals[getIdx(i-1)]
-						vals[getIdx(i-1)] = temp
-					}
-				}
-
+	for i := range indices {
+		// fmt.Println(i)
+		curr_idx := -1
+		for curr, idx := range indices {
+			// fmt.Println(curr, idx)
+			if idx == i {
+				curr_idx = curr
 				break
 			}
 		}
-		// fmt.Println(vals, v)
-		// vals = newVals
-		// break
+
+		if curr_idx == -1 {
+			panic("invalid idx")
+		}
+
+		new_idx := getNewIdx(curr_idx, vals[i])
+		// fmt.Println("idx", i, curr_idx, vals[i], new_idx)
+
+		// remove from slice
+		// https://github.com/golang/go/wiki/SliceTricks#expand
+
+		// delete from curr_idx
+		indices = append(indices[:curr_idx], indices[curr_idx+1:]...)
+
+		// add at new pos
+		indices = append(indices[:new_idx], append([]int{i}, indices[new_idx:]...)...)
+
+		// fmt.Println(indices)
+
+		// OR
+		// indices = append(indices, 0)
+		// copy(indices[new_idx+1:], indices[new_idx:])
+		// indices[new_idx] = i
 	}
 
 	zero_idx := -1
+	zero_idx_in_orig := -1
 	for idx, v := range vals {
 		if v == 0 {
+			zero_idx_in_orig = idx
+			break
+		}
+	}
+
+	for idx, v := range indices {
+		if v == zero_idx_in_orig {
 			zero_idx = idx
 			break
 		}
 	}
 	// fmt.Println(vals)
 	fmt.Println(zero_idx)
-	l := len(vals)
 
-	v1 := vals[getIdx(zero_idx+1000%l)]
-	v2 := vals[getIdx(zero_idx+2000%l)]
-	v3 := vals[getIdx(zero_idx+3000%l)]
+	v1 := vals[indices[getNewIdx(zero_idx, 1000)]]
+	v2 := vals[indices[getNewIdx(zero_idx, 2000)]]
+	v3 := vals[indices[getNewIdx(zero_idx, 3000)]]
 	fmt.Println(v1, v2, v3)
 	fmt.Println("answer", v1+v2+v3)
 
