@@ -7,6 +7,11 @@ import (
 	"github.com/lolopinto/adventofcode2020/grid"
 )
 
+type move struct {
+	dir   rune
+	steps int
+}
+
 func day22() {
 	chunks := readFileChunks("day22input", 2)
 
@@ -42,10 +47,7 @@ func day22() {
 	description := chunks[1][0]
 
 	i := 0
-	type move struct {
-		dir   rune
-		steps int
-	}
+
 	moves := []move{}
 	for i < len(description) {
 		c := description[i]
@@ -57,10 +59,8 @@ func day22() {
 					break
 				}
 			}
-			// fmt.Println("num coords", i, end, description[i:end])
 			var num int
 			if i == end {
-				// fmt.Println("atoi...")
 				num = atoi(description[i:])
 				// never went through loop
 				i++
@@ -69,7 +69,6 @@ func day22() {
 				num = atoi(description[i:end])
 				i = end
 			}
-			// fmt.Println("num", num, i, end, len(description))
 			moves = append(moves, move{
 				steps: num,
 			})
@@ -77,53 +76,13 @@ func day22() {
 			moves = append(moves, move{
 				dir: rune(c),
 			})
-			// fmt.Println(string(c))
 			i++
 		}
 	}
 	// fmt.Println(moves)
 
-	// canMove := func(p grid.Pos) bool {
-	// 	return g.At(p.Row, p.Column).Rune() == '.'
-	// }
-	var facing = 'R'
-	curr := start
-	for _, move := range moves {
-		if move.dir != 0 {
-			switch move.dir {
-			case 'R':
-				// fmt.Println("90 degree clockwise")
-
-				// fmt.Println("was facing", string(facing))
-				if facing == 'R' {
-					facing = 'D'
-				} else if facing == 'D' {
-					facing = 'L'
-				} else if facing == 'L' {
-					facing = 'U'
-				} else if facing == 'U' {
-					facing = 'R'
-				}
-				// fmt.Println("now facing", string(facing))
-
-			case 'L':
-				// fmt.Println("90 degree counter-clockwise")
-
-				// fmt.Println("was facing", string(facing))
-				if facing == 'R' {
-					facing = 'U'
-				} else if facing == 'D' {
-					facing = 'R'
-				} else if facing == 'L' {
-					facing = 'D'
-				} else if facing == 'U' {
-					facing = 'L'
-				}
-				// fmt.Println("now facing", string(facing))
-			}
-			continue
-		}
-
+	// part 1 regular movement
+	moveDelta := func(curr grid.Pos, facing rune) (grid.Pos, rune) {
 		var delta grid.Pos
 		switch facing {
 		case 'R':
@@ -135,44 +94,142 @@ func day22() {
 		case 'D':
 			delta = grid.NewPos(1, 0)
 		}
+		from := curr
+		for {
 
-		moveDelta := func() grid.Pos {
-			from := curr
-			for {
+			r := (from.Row + delta.Row) % g.XLength
+			c := (from.Column + delta.Column) % g.YLength
+			if r < 0 {
+				r = r + g.XLength
+			}
+			if c < 0 {
+				c = c + g.YLength
+			}
 
-				r := (from.Row + delta.Row) % g.XLength
-				c := (from.Column + delta.Column) % g.YLength
-				if r < 0 {
-					r = r + g.XLength
-				}
-				if c < 0 {
-					c = c + g.YLength
-				}
+			from = grid.NewPos(r, c)
+			v := ' '
 
-				from = grid.NewPos(r, c)
-				v := ' '
+			val := g.At(r, c).Data()
+			if val != nil {
+				v = g.At(r, c).Rune()
+			}
 
-				val := g.At(r, c).Data()
-				if val != nil {
-					v = g.At(r, c).Rune()
-				}
-				// fmt.Println("in move delta", r, c, string(v))
-
-				if v == '.' || v == '#' {
-					// valid spot
-					return from
-				}
-				// fmt.Println(string(facing), curr, r, c, string(v))
+			if v == '.' || v == '#' {
+				// valid spot
+				return from, facing
 			}
 		}
 
+	}
+
+	moveDeltaCube := func(curr grid.Pos, facing rune) (grid.Pos, rune) {
+		var delta grid.Pos
+		switch facing {
+		case 'R':
+			delta = grid.NewPos(0, 1)
+		case 'L':
+			delta = grid.NewPos(0, -1)
+		case 'U':
+			delta = grid.NewPos(-1, 0)
+		case 'D':
+			delta = grid.NewPos(1, 0)
+		}
+		from := curr
+		// for {
+
+		r := (from.Row + delta.Row)
+		c := (from.Column + delta.Column)
+		jump := false
+		if r < 0 || r > g.XLength {
+			// TODO need to jump dimensions
+			// r = r + g.XLength
+			jump = true
+		}
+		if c < 0 || c > g.YLength {
+			jump = true
+		}
+
+		if !jump {
+			from = grid.NewPos(r, c)
+			v := ' '
+
+			val := g.At(r, c).Data()
+			if val != nil {
+				v = g.At(r, c).Rune()
+			}
+			if v == ' ' {
+				jump = true
+			}
+		}
+
+		if jump {
+			fmt.Println(r, c, curr, string(facing))
+			panic("TODO ola figure it out?")
+		} else {
+			return grid.NewPos(r, c), facing
+		}
+		// from = grid.NewPos(r, c)
+		// v := ' '
+
+		// val := g.At(r, c).Data()
+		// if val != nil {
+		// 	v = g.At(r, c).Rune()
+		// }
+
+		// if v == '.' || v == '#' {
+		// 	// valid spot
+		// 	return from, facing
+		// }
+		// // }
+	}
+
+	part1Ans := processMoves(moves, start, g, moveDelta)
+	part2Ans := processMoves(moves, start, g, moveDeltaCube)
+
+	// fmt.Println(curr, facing)
+	fmt.Println("part 1", part1Ans)
+	fmt.Println("part 2", part2Ans)
+}
+
+func processMoves(moves []move, start grid.Pos, g *grid.Grid, moveFn func(curr grid.Pos, facing rune) (grid.Pos, rune)) int {
+	var facing = 'R'
+	curr := start
+	for _, move := range moves {
+		if move.dir != 0 {
+			switch move.dir {
+			case 'R':
+				if facing == 'R' {
+					facing = 'D'
+				} else if facing == 'D' {
+					facing = 'L'
+				} else if facing == 'L' {
+					facing = 'U'
+				} else if facing == 'U' {
+					facing = 'R'
+				}
+
+			case 'L':
+				if facing == 'R' {
+					facing = 'U'
+				} else if facing == 'D' {
+					facing = 'R'
+				} else if facing == 'L' {
+					facing = 'D'
+				} else if facing == 'U' {
+					facing = 'L'
+				}
+			}
+			continue
+		}
+
 		for i := 0; i < move.steps; i++ {
-			newPos := moveDelta()
+			newPos, newFacing := moveFn(curr, facing)
 			if g.At(newPos.Row, newPos.Column).Rune() != '.' {
 				break
 			}
 			// fmt.Println("changing pos", curr, newPos, string(facing))
 			curr = newPos
+			facing = newFacing
 		}
 	}
 
@@ -189,7 +246,5 @@ func day22() {
 		ans += 3
 
 	}
-
-	// fmt.Println(curr, facing)
-	fmt.Println("part 1", ans)
+	return ans
 }
