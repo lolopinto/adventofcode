@@ -74,6 +74,12 @@ func day23() {
 		}
 	}
 
+	m2 := copyMap(m)
+	day23part1(m, priorities)
+	day23part2(m2, priorities)
+}
+
+func day23part1(m map[grid.Pos]rune, priorities []direction) {
 	getMinMax := func() (int, int, int, int) {
 		rows := []int{}
 		cols := []int{}
@@ -81,13 +87,13 @@ func day23() {
 			rows = append(rows, k.Row)
 			cols = append(cols, k.Column)
 		}
-		// fmt.Println(m)
 		minr := min(rows)
 		minc := min(cols)
 		maxr := max(rows)
 		maxc := max(cols)
 		return minr, maxr, minc, maxc
 	}
+
 	print := func() {
 
 		// for r := -2; r <= len(lines)+3; r++ {
@@ -104,9 +110,9 @@ func day23() {
 	}
 
 	print()
+	// part 1
 	for i := 0; i < 10; i++ {
-		fmt.Println("round", i+1)
-		priorities = doRound(m, priorities)
+		priorities, _ = doRound(m, priorities)
 		print()
 	}
 	minr, maxr, minc, maxc := getMinMax()
@@ -120,11 +126,24 @@ func day23() {
 			}
 		}
 	}
-	// fmt.Println(len(m), minr, maxr, minc, maxc)
-	fmt.Println(ct)
+	fmt.Println("part 1 answer", ct)
 }
 
-func doRound(m map[grid.Pos]rune, priorities []direction) []direction {
+func day23part2(m map[grid.Pos]rune, priorities []direction) {
+	i := 1
+	for {
+		var done bool
+		priorities, done = doRound(m, priorities)
+		if done {
+			fmt.Println("part 2 answer", i)
+			break
+		}
+		i++
+		print()
+	}
+}
+
+func doRound(m map[grid.Pos]rune, priorities []direction) ([]direction, bool) {
 	proposalsMapping := map[grid.Pos]grid.Pos{}
 	proposalsTo := map[grid.Pos]int{}
 
@@ -143,7 +162,6 @@ func doRound(m map[grid.Pos]rune, priorities []direction) []direction {
 
 		// no other elves in this position, nothing to do here
 		if !found {
-			// fmt.Println("no elf, elf does nothing")
 			continue
 		}
 
@@ -155,7 +173,6 @@ func doRound(m map[grid.Pos]rune, priorities []direction) []direction {
 				v, ok := m[pos2]
 				if ok && v == '#' {
 					elfFound = true
-					// fmt.Println("elf found @ ", pos2, " for ", pos)
 					break
 				}
 			}
@@ -169,7 +186,6 @@ func doRound(m map[grid.Pos]rune, priorities []direction) []direction {
 			continue
 		}
 		proposal := pos.Add(deltas[proposedDir])
-		// fmt.Println(pos, "proposing", proposedDir, proposal)
 		// set proposal for elf
 		proposalsMapping[pos] = proposal
 
@@ -182,11 +198,9 @@ func doRound(m map[grid.Pos]rune, priorities []direction) []direction {
 		ct := proposalsTo[newPos]
 
 		if ct != 1 {
-			// fmt.Println("exiting count")
 			continue
 		}
 
-		// fmt.Println("moving")
 		delete(m, pos)
 		m[newPos] = '#'
 	}
@@ -194,5 +208,5 @@ func doRound(m map[grid.Pos]rune, priorities []direction) []direction {
 	newLast := priorities[0]
 	priorities = append([]direction{}, priorities[1:]...)
 	priorities = append(priorities, newLast)
-	return priorities
+	return priorities, len(proposalsMapping) == 0
 }
