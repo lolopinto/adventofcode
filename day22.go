@@ -2,14 +2,59 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"unicode"
 
 	"github.com/lolopinto/adventofcode2020/grid"
 )
 
 type move struct {
-	dir   rune
+	dir   cubeDirection
 	steps int
+}
+
+type cubeDirection rune
+
+const (
+	Right cubeDirection = 'R'
+	Left  cubeDirection = 'L'
+	Up    cubeDirection = 'U'
+	Down  cubeDirection = 'D'
+)
+
+var directionOrders = []cubeDirection{
+	Right,
+	Down,
+	Left,
+	Up,
+}
+
+var clockwise = map[cubeDirection]cubeDirection{
+	Right: Down,
+	Down:  Left,
+	Left:  Up,
+	Up:    Right,
+}
+
+var counterClockwise = map[cubeDirection]cubeDirection{
+	Right: Up,
+	Down:  Right,
+	Left:  Down,
+	Up:    Left,
+}
+
+var moveDeltas = map[cubeDirection]grid.Pos{
+	Right: grid.NewPos(0, 1),
+	Left:  grid.NewPos(0, -1),
+	Up:    grid.NewPos(-1, 0),
+	Down:  grid.NewPos(1, 0),
+}
+
+var flippedDirections = map[cubeDirection]cubeDirection{
+	Right: Left,
+	Down:  Up,
+	Left:  Right,
+	Up:    Down,
 }
 
 func day22() {
@@ -49,6 +94,7 @@ func day22() {
 	i := 0
 
 	moves := []move{}
+	// TODO refactor this into something that can parse ints and other known characters
 	for i < len(description) {
 		c := description[i]
 		if unicode.IsDigit(rune(c)) {
@@ -74,29 +120,104 @@ func day22() {
 			})
 		} else {
 			moves = append(moves, move{
-				dir: rune(c),
+				dir: cubeDirection(c),
 			})
 			i++
 		}
 	}
-	// fmt.Println(moves)
+
+	// 4 in example, 50 in input
+	cubeLength := abs(g.XLength, g.YLength)
+
+	// part 2 inspired by this comment and solution
+	// updated to be in line with how i was initially trying to solve it
+	// https://www.reddit.com/r/adventofcode/comments/zsct8w/comment/j1bzuzm/?utm_source=reddit&utm_medium=web2x&context=3
+	faces := []*cubeFace{}
+	// add faces of cubes
+	for r := 0; r < g.XLength; r += cubeLength {
+		for c := 0; c < g.YLength; c += cubeLength {
+			if g.At(r, c).RuneWithDefault(' ') != ' ' {
+				c := &cubeFace{
+					r:          [2]int{r, r + cubeLength - 1},
+					c:          [2]int{c, c + cubeLength - 1},
+					cubeLength: cubeLength,
+					neighbors:  map[cubeDirection]*cubeFace{},
+					crossCellNeighbors: map[cubeDirection]map[grid.Pos]grid.Pos{
+						Right: {},
+						Down:  {},
+						Up:    {},
+						Left:  {},
+					},
+				}
+				faces = append(faces, c)
+			}
+		}
+	}
+	if len(faces) != 6 {
+		log.Fatalf("expected 6 faces. got %d instead", len(faces))
+	}
+
+	for _, f1 := range faces {
+		for _, f2 := range faces {
+			if f1.eq(f2) {
+				continue
+			}
+			// same row and distance is length we expected
+			// connect right and left
+			if f1.r == f2.r && f2.c[0]-f1.c[0] == cubeLength {
+				connectSides(f1, f2, Right, Left)
+			}
+			// same column
+			// connect up and down
+			if f1.c == f2.c && f2.r[0]-f1.r[0] == cubeLength {
+				connectSides(f1, f2, Down, Up)
+			}
+		}
+	}
+
+	// fold and set new neighbors by going through known faces and edges
+	// and connecting
+	// 5 done already ahead based on inputs
+	for disconnected := 7; disconnected > 0; {
+		for _, f := range faces {
+			for _, dir := range directionOrders {
+				if f.neighbors[dir] != nil {
+					continue
+				}
+
+				next := clockwise[dir]
+				prev := counterClockwise[dir]
+
+				if f2 := f.neighbors[next]; f2 != nil {
+					next = clockwise[f2.entrySide(f)]
+					if fold := f2.neighbors[next]; fold != nil {
+						next = clockwise[fold.entrySide(f2)]
+						if fold.neighbors[next] == nil {
+							connectSides(f, fold, dir, next)
+							disconnected--
+						}
+					}
+				} else if f2 := f.neighbors[prev]; f2 != nil {
+					prev = counterClockwise[f2.entrySide(f)]
+					if fold := f2.neighbors[prev]; fold != nil {
+						prev = counterClockwise[fold.entrySide(f2)]
+						if fold.neighbors[prev] == nil {
+							connectSides(f, fold, dir, prev)
+							disconnected--
+						}
+					}
+				}
+			}
+
+		}
+	}
 
 	// part 1 regular movement
-	moveDelta := func(curr grid.Pos, facing rune) (grid.Pos, rune) {
-		var delta grid.Pos
-		switch facing {
-		case 'R':
-			delta = grid.NewPos(0, 1)
-		case 'L':
-			delta = grid.NewPos(0, -1)
-		case 'U':
-			delta = grid.NewPos(-1, 0)
-		case 'D':
-			delta = grid.NewPos(1, 0)
-		}
+	moveDelta := func(curr grid.Pos, facing cubeDirection) (grid.Pos, cubeDirection) {
+		delta := moveDeltas[facing]
+
 		from := curr
 		for {
-
 			r := (from.Row + delta.Row) % g.XLength
 			c := (from.Column + delta.Column) % g.YLength
 			if r < 0 {
@@ -107,134 +228,162 @@ func day22() {
 			}
 
 			from = grid.NewPos(r, c)
-			v := ' '
 
-			val := g.At(r, c).Data()
-			if val != nil {
-				v = g.At(r, c).Rune()
-			}
+			v := g.At(r, c).RuneWithDefault(' ')
 
 			if v == '.' || v == '#' {
 				// valid spot
 				return from, facing
 			}
 		}
-
 	}
 
-	moveDeltaCube := func(curr grid.Pos, facing rune) (grid.Pos, rune) {
-		var delta grid.Pos
-		switch facing {
-		case 'R':
-			delta = grid.NewPos(0, 1)
-		case 'L':
-			delta = grid.NewPos(0, -1)
-		case 'U':
-			delta = grid.NewPos(-1, 0)
-		case 'D':
-			delta = grid.NewPos(1, 0)
-		}
-		from := curr
-		// for {
+	// part 2. cube
+	moveDeltaCube := func(curr grid.Pos, facing cubeDirection) (grid.Pos, cubeDirection) {
+		delta := moveDeltas[facing]
+		newPos := curr.Add(delta)
 
-		r := (from.Row + delta.Row)
-		c := (from.Column + delta.Column)
 		jump := false
-		if r < 0 || r > g.XLength {
-			// TODO need to jump dimensions
-			// r = r + g.XLength
-			jump = true
-		}
-		if c < 0 || c > g.YLength {
+		if !g.InGrid(newPos) || g.At(newPos.Row, newPos.Column).RuneWithDefault(' ') == ' ' {
 			jump = true
 		}
 
 		if !jump {
-			from = grid.NewPos(r, c)
-			v := ' '
-
-			val := g.At(r, c).Data()
-			if val != nil {
-				v = g.At(r, c).Rune()
-			}
-			if v == ' ' {
-				jump = true
-			}
+			return newPos, facing
 		}
 
-		if jump {
-			fmt.Println(r, c, curr, string(facing))
-			panic("TODO ola figure it out?")
-		} else {
-			return grid.NewPos(r, c), facing
+		var currFace *cubeFace
+		for _, f := range faces {
+			if f.inFace(curr) {
+				currFace = f
+				break
+			}
 		}
-		// from = grid.NewPos(r, c)
-		// v := ' '
+		if currFace == nil {
+			panic(fmt.Errorf("couldn't find the face that point %v is in", curr))
+		}
 
-		// val := g.At(r, c).Data()
-		// if val != nil {
-		// 	v = g.At(r, c).Rune()
-		// }
+		// what's the neighbor we're going to?
+		newFace := currFace.neighbors[facing]
 
-		// if v == '.' || v == '#' {
-		// 	// valid spot
-		// 	return from, facing
-		// }
-		// // }
+		// what's the direction currFace is going into new face
+		newFacing := newFace.entrySide(currFace)
+		// and direction flips from where we're facing
+		newFacing = flippedDirections[newFacing]
+
+		v, ok := currFace.crossCellNeighbors[facing][curr]
+		if !ok {
+			panic(fmt.Errorf("couldn't find cross-cell neighbor for %v facing %v", curr, facing))
+		}
+		return v, newFacing
 	}
 
 	part1Ans := processMoves(moves, start, g, moveDelta)
 	part2Ans := processMoves(moves, start, g, moveDeltaCube)
 
-	// fmt.Println(curr, facing)
 	fmt.Println("part 1", part1Ans)
 	fmt.Println("part 2", part2Ans)
 }
 
-func processMoves(moves []move, start grid.Pos, g *grid.Grid, moveFn func(curr grid.Pos, facing rune) (grid.Pos, rune)) int {
-	var facing = 'R'
+type cubeFace struct {
+	r, c               [2]int
+	cubeLength         int
+	neighbors          map[cubeDirection]*cubeFace
+	crossCellNeighbors map[cubeDirection]map[grid.Pos]grid.Pos
+}
+
+func (cf *cubeFace) eq(cf2 *cubeFace) bool {
+	return cf.r == cf2.r && cf.c == cf2.c
+}
+
+func (cf *cubeFace) entrySide(source *cubeFace) cubeDirection {
+	for _, dir := range directionOrders {
+		if cf.neighbors[dir] != nil && cf.neighbors[dir].eq(source) {
+			return dir
+		}
+	}
+	panic("couldn't find entry side for invalid value returned for entry side")
+}
+
+// TODO document
+func (cf *cubeFace) sideClockwise(dir cubeDirection) []grid.Pos {
+	cells := make([]grid.Pos, cf.cubeLength)
+	n := len(cells) - 1
+	var row, col, rowInc, colInc int
+	switch dir {
+	case Right:
+		row, col, rowInc, colInc = 0, n, 1, 0
+	case Down:
+		row, col, rowInc, colInc = n, n, 0, -1
+	case Left:
+		row, col, rowInc, colInc = n, 0, -1, 0
+	case Up:
+		row, col, rowInc, colInc = 0, 0, 0, 1
+	}
+	start := grid.NewPos(cf.r[0], cf.c[0])
+	for i := 0; i <= n; i++ {
+		cells[i] = start.Add(grid.NewPos(row, col))
+		row += rowInc
+		col += colInc
+	}
+	return cells
+}
+
+func (cf *cubeFace) inFace(pos grid.Pos) bool {
+	return pos.Row >= cf.r[0] && pos.Row <= cf.r[1] &&
+		pos.Column >= cf.c[0] && pos.Column <= cf.c[1]
+}
+
+func connectSides(f1, f2 *cubeFace, facing, facing2 cubeDirection) {
+	side1 := f1.sideClockwise(facing)
+	side2 := f2.sideClockwise(facing2)
+	n := len(side1) - 1
+
+	for i := range side1 {
+		cell1, cell2 := side1[i], side2[n-i]
+
+		// keep track of cross cell neighbors for cells at the border
+		// makes it easiest to go to them when crossing cubes
+		f1.crossCellNeighbors[facing][cell1] = cell2
+		f2.crossCellNeighbors[facing2][cell2] = cell1
+	}
+
+	f1.neighbors[facing] = f2
+	f2.neighbors[facing2] = f1
+}
+
+func processMoves(moves []move, start grid.Pos, g *grid.Grid, moveFn func(curr grid.Pos, facing cubeDirection) (grid.Pos, cubeDirection)) int {
+	var facing cubeDirection = 'R'
 	curr := start
 	for _, move := range moves {
 		if move.dir != 0 {
-			switch move.dir {
-			case 'R':
-				if facing == 'R' {
-					facing = 'D'
-				} else if facing == 'D' {
-					facing = 'L'
-				} else if facing == 'L' {
-					facing = 'U'
-				} else if facing == 'U' {
-					facing = 'R'
-				}
-
-			case 'L':
-				if facing == 'R' {
-					facing = 'U'
-				} else if facing == 'D' {
-					facing = 'R'
-				} else if facing == 'L' {
-					facing = 'D'
-				} else if facing == 'U' {
-					facing = 'L'
-				}
+			if move.dir == Right {
+				facing = clockwise[facing]
+			} else if move.dir == Left {
+				facing = counterClockwise[facing]
 			}
 			continue
 		}
 
 		for i := 0; i < move.steps; i++ {
 			newPos, newFacing := moveFn(curr, facing)
-			if g.At(newPos.Row, newPos.Column).Rune() != '.' {
+			val := g.At(newPos.Row, newPos.Column).Rune()
+			// wall
+			if val == '#' {
 				break
 			}
-			// fmt.Println("changing pos", curr, newPos, string(facing))
-			curr = newPos
+			if val == ' ' {
+				panic(fmt.Errorf("sadness. hit air: %v", newPos))
+			}
+
 			facing = newFacing
+			curr = newPos
 		}
 	}
 
 	finalRow := curr.Row + 1
 	finalColumm := curr.Column + 1
+	// fmt.Println(finalRow, finalColumm)
 	ans := (finalRow * 1000) + (finalColumm * 4)
 	switch facing {
 	// case 'R':

@@ -179,6 +179,14 @@ func (g *Grid) Print(fn func(val interface{}) string) {
 	}
 }
 
+func (g *Grid) InGrid(p Pos) bool {
+	if p.Row < 0 || p.Row >= g.XLength || p.Column < 0 || p.Column >= g.YLength {
+		return false
+	}
+
+	return true
+}
+
 type Data struct {
 	Visited bool
 	data    interface{}
@@ -191,6 +199,13 @@ func (d *Data) Int() int {
 
 func (d *Data) Rune() rune {
 	// returns 0 if not valid
+	return d.data.(rune)
+}
+
+func (d *Data) RuneWithDefault(def rune) rune {
+	if d.data == nil {
+		return def
+	}
 	return d.data.(rune)
 }
 
