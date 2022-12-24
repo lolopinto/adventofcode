@@ -100,16 +100,28 @@ func day24() {
 
 				_, ok := walls[newPos]
 				if ok {
-					if newPos.Row == 0 {
-						newPos.Row = v.xLength - 1
-					} else if newPos.Row == v.xLength-1 {
-						newPos.Row = 1
+
+					newPos = newPos.Sub(delta)
+					// fmt.Println("looping")
+					for {
+						_, ok := walls[newPos]
+						if ok {
+							break
+						}
+						newPos = newPos.Sub(delta)
 					}
-					if newPos.Column == 0 {
-						newPos.Column = v.yLength - 2
-					} else if newPos.Column == v.yLength-1 {
-						newPos.Column = 1
-					}
+					newPos = newPos.Add(delta)
+
+					// if newPos.Row == 0 {
+					// 	newPos.Row = v.xLength - 1
+					// } else if newPos.Row == v.xLength-1 {
+					// 	newPos.Row = 1
+					// }
+					// if newPos.Column == 0 {
+					// 	newPos.Column = v.yLength - 2
+					// } else if newPos.Column == v.yLength-1 {
+					// 	newPos.Column = 1
+					// }
 				}
 				// }
 				// if log {
@@ -138,7 +150,7 @@ func day24() {
 					// fmt.Println("wall", newCurr)
 					continue
 				}
-				if newBlizzards[newCurr] != nil {
+				if len(newBlizzards[newCurr]) != 0 {
 					// fmt.Println("blizzard", newCurr)
 					continue
 				}
