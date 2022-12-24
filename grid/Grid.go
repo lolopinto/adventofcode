@@ -218,6 +218,10 @@ func (p Pos) Add(p2 Pos) Pos {
 	return NewPos(p.Row+p2.Row, p.Column+p2.Column)
 }
 
+func (p Pos) Sub(p2 Pos) Pos {
+	return NewPos(p.Row-p2.Row, p.Column-p2.Column)
+}
+
 func NewPos(r, c int) Pos {
 	return Pos{Row: r, Column: c}
 }
