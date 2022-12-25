@@ -202,6 +202,10 @@ func abs(i, j int) int {
 	return int(math.Abs(float64(i) - float64(j)))
 }
 
+func abs64(i, j int64) int64 {
+	return int64(math.Abs(float64(i) - float64(j)))
+}
+
 func convertToBinary(line string) int {
 	res := make([]int, len(line))
 	for i, c := range line {
@@ -289,6 +293,12 @@ func copyMap[K comparable, V any](m map[K]V) map[K]V {
 	return ret
 }
 
+func copyList[T any](l []T) []T {
+	ret := make([]T, len(l))
+	copy(ret, l)
+	return ret
+}
+
 func keys[K comparable, V any](m map[K]V) []K {
 	ret := make([]K, len(m))
 	i := 0
@@ -297,4 +307,35 @@ func keys[K comparable, V any](m map[K]V) []K {
 		i++
 	}
 	return ret
+}
+
+// permutaations with repetitions until we find one
+// didn't end up using it as it's 20! so doesn't work for 2022 day 25 input lol
+func permutationsWithRepeat[T any](list []T, n int, decide func(l []T) bool) {
+	pn := make([]int, n)
+	p := make([]T, n)
+	k := len(list)
+	for {
+		// generate permutaton
+		for i, x := range pn {
+			p[i] = list[x]
+		}
+		// show progress
+		// pass to deciding function
+		if decide(p) {
+			return // terminate early
+		}
+		// increment permutation number
+		for i := 0; ; {
+			pn[i]++
+			if pn[i] < k {
+				break
+			}
+			pn[i] = 0
+			i++
+			if i == n {
+				return // all permutations generated
+			}
+		}
+	}
 }
