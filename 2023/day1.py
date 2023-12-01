@@ -1,8 +1,20 @@
 from utils import read_file
 import asyncio
 
-async def main():
-    
+async def part1():
+    sum = 0
+    async for line in read_file("day1input"):
+        digits = []
+        for c in line:
+            if c.isdigit():
+                digits.append(int(c))
+        assert len(digits) > 0
+        val = digits[0] * 10 + digits[-1]
+        sum += val
+            
+    print(sum)
+
+async def part2():
     possible = {
         "one": 1,
         "two": 2,
@@ -46,13 +58,14 @@ async def main():
         assert first is not None 
         assert last is not None
         val = (first * 10) + last
-        print(line, first, last, val)
+        # print(line, first, last, val)
 
         sum += val
             
     print(sum)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(part1())
+    asyncio.run(part2())
     
     # 54629 too high
