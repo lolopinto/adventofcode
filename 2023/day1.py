@@ -25,18 +25,23 @@ async def main():
     }
     sum = 0
     async for line in read_file("day1input"):
-        digits = {}
+        digits_first = {}
+        digits_last = {}
         for digit in possible.keys():
-            if digit in line:
-                idx = line.index(digit)
-                digits[idx] = digit
-        assert len(digits) > 0
+            first_idx = line.find(digit)
+            if first_idx > -1:
+                digits_first[first_idx] = digit
+            last_idx = line.rfind(digit)
+            if last_idx > -1:
+                digits_last[last_idx] = digit
+        assert len(digits_first) > 0
+        assert len(digits_last) > 0
 
 
-        sorted_keys = sorted(digits.keys())
-        # print(sorted_keys)
-        first = possible[digits[sorted_keys[0]]]
-        last = possible[digits[sorted_keys[-1]]]
+        sorted_first = sorted(digits_first.keys())
+        sorted_last = sorted(digits_last.keys())
+        first = possible[digits_first[sorted_first[0]]]
+        last = possible[digits_last[sorted_last[-1]]]
 
         assert first is not None 
         assert last is not None
