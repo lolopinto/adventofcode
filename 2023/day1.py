@@ -67,5 +67,3 @@ async def part2():
 if __name__ == "__main__":
     asyncio.run(part1())
     asyncio.run(part2())
-    
-    # 54629 too high
