@@ -1,6 +1,32 @@
 from aiofiles import open
+from typing import AsyncGenerator
 
-async def read_file(file: str):
+async def read_file(file: str) -> AsyncGenerator[str, None]:
   async with open(file) as f:
     async for line in f:
       yield line.strip()
+      
+
+async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], None]:
+  l = []
+  next_empty = False
+  async with open(file) as f:
+    async for line in f:
+      line = line.strip()
+      if next_empty:
+        assert line == ""
+        next_empty = False
+        continue
+      
+      l.append(line)
+      if len(l) == length:
+        yield l
+        l = []
+        next_empty = True
+
+
+# TODO grid implementation
+
+# TODO graph implementation
+
+# TODO cube implementation
