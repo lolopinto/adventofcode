@@ -17,18 +17,14 @@ class Game:
   groups: list[Group]
   
   def possible(self):
-    red = 0
-    blue = 0
-    green = 0
     for g in self.groups:
-      red += g.red
-      blue += g.blue
-      green += g.green
-      
-    return red <= 12 and blue <= 14 and green <= 13
+      if g.red > 12 or g.blue > 14 or g.green > 13:
+        return False
+
+    return True      
   
 def parse_line(line: str) -> Game:
-  # print(line)
+  print(line)
   parts = line.split(":")
   assert len(parts) == 2
 
