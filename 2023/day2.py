@@ -1,9 +1,7 @@
 from utils import read_file
 import asyncio
 import re
-from dataclasses  import dataclass
-# from typinq import T, L
-
+from dataclasses import dataclass
 
 @dataclass
 class Group:
@@ -14,17 +12,27 @@ class Group:
 @dataclass
 class Game:
   id: int
-  groups: list[Group]
+  sets: list[Group]
   
-  def possible(self):
-    for g in self.groups:
+  def possible(self) -> bool:
+    for g in self.sets:
       if g.red > 12 or g.blue > 14 or g.green > 13:
         return False
 
     return True      
   
+  # the language here was confusing and took me a while to understand what was being asked
+  def power(self) -> int:
+    reds = []
+    greens = []
+    blues = []
+    for g in self.sets:
+      reds.append(g.red)
+      greens.append(g.green)
+      blues.append(g.blue)
+    return max(reds) * max(greens) * max(blues)
+
 def parse_line(line: str) -> Game:
-  print(line)
   parts = line.split(":")
   assert len(parts) == 2
 
@@ -59,14 +67,16 @@ async def part1():
   sum = 0
   async for line in read_file("day2input"):
     g = parse_line(line)
-    # print(g)
     if g.possible():
       sum += g.id
   print(sum)
 
-
 async def part2():
-  pass
+  sum = 0
+  async for line in read_file("day2input"):
+    g = parse_line(line)
+    sum += g.power()
+  print(sum)
 
 if __name__ == "__main__":
     asyncio.run(part1())
