@@ -2,6 +2,16 @@ from utils import read_file
 from grid import Grid
 import asyncio
 
+def check(g: Grid, num: int, coords: list[tuple[int, int]])-> bool:
+  for r, c in coords:
+    neighbors = g.neighbors8(r, c)
+    found = False
+    for r2, c2 in neighbors:
+      if is_symbol(g, r2, c2):
+        return True
+  return False      
+
+
 async def part1():
   init = False
   g = None
@@ -16,14 +26,12 @@ async def part1():
       init = True
     assert g is not None
     for c in range(l):
-      # print(r, c, line[c])
       g.set(r, c, line[c])
     r += 1
     
-  # print(g)
-  candidates = {}
   curr = None
   l = []
+  sum = 0
   for r in range(g.height):
     for c in range(g.width):
       v = g.get_value(r, c)
@@ -33,31 +41,18 @@ async def part1():
           curr = []
         curr.append(v)
         l.append((r, c))
-      else:
-        if curr is not None:
-          num = int("".join(curr))
-          candidates[num] = l
-          curr = None
-          l = []
+      elif curr is not None:
+        num = int("".join(curr))
+        if check(g, num, l):
+          sum += num
+          
+        curr = None
+        l = []
 
-  # print(candidates)    
-  sum = 0 
-  for k, v in candidates.items():
-    # print(v)
-    for r, c in v:
-      neighbors = g.neighbors8(r, c)
-      found = False
-      # print(r, c, neighbors)
-      for r2, c2 in neighbors:
-        if is_symbol(g, r2, c2):
-          found = True
-          break
-      if found:
-        sum += k
-        break
   print(sum)
 
 # 316970 too low
+# 532580 too low
 def is_symbol(g: Grid[str], r: int, c:int) -> bool:
   v = g.get_value(r, c)
   if v.isdigit():

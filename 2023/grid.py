@@ -36,14 +36,15 @@ class Grid(Generic[T]):
   def get(self, r: int, c: int) -> Data[T]:
     return self.data[r][c]
   
+  def get_value(self, r: int, c: int) -> T:
+    return self.data[r][c].value
+
   def visit(self, r: int, c: int):
     self.data[r][c].visited = True
     
   def visited(self, r: int, c: int) -> bool:
     return self.data[r][c].visited
   
-  def get_value(self, r: int, c: int) -> T:
-    return self.data[r][c].value
   
   def neighbors(self, r: int, c: int) -> list[tuple[int, int]]:
     neighbors = []
@@ -123,15 +124,14 @@ class Grid(Generic[T]):
   
   def neighbors8(self, r: int, c: int) -> list[tuple[int, int]]:
     neighbors = []
-    for i in range(r - 1, r + 2):
-      for j in range(c - 1, c + 2):
-        if i == r and j == c:
+    for i in range(-1, 2):
+      for j in range(-1, 2):
+        if i == 0 and j == 0:
           continue
-        if i < 0 or i >= self.height:
-          continue
-        if j < 0 or j >= self.width:
-          continue
-        neighbors.append((i, j))
+        r2 = r + i
+        c2 = c + j
+        if r2 >= 0 and r2 < self.height and c2 >= 0 and c2 < self.width:
+          neighbors.append((r2, c2))
     return neighbors
 
   def visit_neighbors(self, r: int, c: int):
