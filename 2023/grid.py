@@ -20,7 +20,7 @@ class Grid(Generic[T]):
     self.width = width
     self.height = height
     self.data = [[Data() for _ in range(width)] for _ in range(height)]
-    print(self.data)
+    # print(self.data)
 
   @staticmethod
   def square_grid(length: int) -> Grid[T]:
@@ -31,7 +31,7 @@ class Grid(Generic[T]):
     return Grid(width, height)
   
   def set(self, r: int, c: int, val: T):
-    self.data[c][c].value = val
+    self.data[r][c].value = val
     
   def get(self, r: int, c: int) -> Data[T]:
     return self.data[r][c]
@@ -132,6 +132,7 @@ class Grid(Generic[T]):
         if j < 0 or j >= self.width:
           continue
         neighbors.append((i, j))
+    return neighbors
 
   def visit_neighbors(self, r: int, c: int):
     for n in self.neighbors(r, c):
