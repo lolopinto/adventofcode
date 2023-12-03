@@ -2,17 +2,16 @@ from utils import read_file
 from grid import Grid
 import asyncio
 
-def check(g: Grid, num: int, coords: list[tuple[int, int]])-> bool:
+def check(g: Grid, num: int, coords: list[tuple[int, int]]) -> (bool, str | None, tuple[int, int] | None):
   for r, c in coords:
     neighbors = g.neighbors8(r, c)
     found = False
     for r2, c2 in neighbors:
       if is_symbol(g, r2, c2):
-        return True
-  return False      
+        return True, (r2, c2), g.get_value(r2, c2)
+  return False, None, None
 
-
-async def part1():
+async def init_grid() -> Grid[str]:
   init = False
   g = None
   r = 0
@@ -28,7 +27,11 @@ async def part1():
     for c in range(l):
       g.set(r, c, line[c])
     r += 1
-    
+  return g
+
+async def part1():
+  g = await init_grid()
+
   curr = None
   l = []
   sum = 0
@@ -43,7 +46,8 @@ async def part1():
         l.append((r, c))
       elif curr is not None:
         num = int("".join(curr))
-        if check(g, num, l):
+        is_part, _, _ = check(g, num, l)
+        if is_part:
           sum += num
           
         curr = None
@@ -62,8 +66,35 @@ def is_symbol(g: Grid[str], r: int, c:int) -> bool:
   return True
 
 async def part2():
-  async for line in read_file("day3input"):
-    pass
+  g = await init_grid()
+
+  curr = None
+  l = []
+  sum = 0
+  stars = {}
+  for r in range(g.height):
+    for c in range(g.width):
+      v = g.get_value(r, c)
+      assert v is not None
+      if v.isdigit():
+        if curr is None:
+          curr = []
+        curr.append(v)
+        l.append((r, c))
+      elif curr is not None:
+        num = int("".join(curr))
+        is_part, star_coord, symbol = check(g, num, l)
+        if is_part and symbol == '*':
+          l = stars.get(star_coord) or []
+          l.append(num)
+          stars[star_coord] = l
+        curr = None
+        l = []
+
+  for k, v in stars.items():
+    if len(v) == 2:
+      sum += v[0] * v[1]
+  print(sum)
 
 
 if __name__ == "__main__":
