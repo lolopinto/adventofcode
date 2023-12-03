@@ -11,26 +11,18 @@ def check(g: Grid, num: int, coords: list[tuple[int, int]]) -> (bool, str | None
         return True, (r2, c2), g.get_value(r2, c2)
   return False, None, None
 
-async def init_grid() -> Grid[str]:
-  init = False
-  g = None
-  r = 0
 
-  # TODO better way to just init from a grid if we know it's a grid
-  # e.g. just do all this from input file
-  async for line in read_file("day3input"):
-    if not init:
-      l = len(line)
-      g = Grid.square_grid(l)
-      init = True
-    assert g is not None
-    for c in range(l):
-      g.set(r, c, line[c])
-    r += 1
-  return g
+def is_symbol(g: Grid[str], r: int, c:int) -> bool:
+  v = g.get_value(r, c)
+  if v.isdigit():
+    return False
+  if v == ".":
+    return False
+  return True
+
 
 async def part1():
-  g = await init_grid()
+  g = await Grid.square_grid_from_file("day3input")
 
   curr = None
   l = []
@@ -55,18 +47,9 @@ async def part1():
 
   print(sum)
 
-# 316970 too low
-# 532580 too low
-def is_symbol(g: Grid[str], r: int, c:int) -> bool:
-  v = g.get_value(r, c)
-  if v.isdigit():
-    return False
-  if v == ".":
-    return False
-  return True
 
 async def part2():
-  g = await init_grid()
+  g = await Grid.square_grid_from_file("day3input")
 
   curr = None
   l = []

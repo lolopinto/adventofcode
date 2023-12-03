@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypeVar, Generic
+from utils import read_file
 
 T = TypeVar("T")
 
@@ -29,6 +30,23 @@ class Grid(Generic[T]):
   @staticmethod
   def grid(width: int, height: int) -> Grid[T]:
     return Grid(width, height)
+  
+  @staticmethod
+  async def square_grid_from_file(file: str) -> Grid[str]:
+    init = False
+    g = None
+    r = 0
+
+    async for line in read_file("day3input"):
+      if not init:
+        l = len(line)
+        g = Grid.square_grid(l)
+        init = True
+      assert g is not None
+      for c in range(l):
+        g.set(r, c, line[c])
+      r += 1
+    return g
   
   def set(self, r: int, c: int, val: T):
     self.data[r][c].value = val
