@@ -9,8 +9,8 @@ async def part1():
   async for line in read_file("day4input"):
     parts = line.split(": ")
     parts2 = parts[1].split(" | ")
-    winners = set(int(v) for v in parts2[0].split(" ") if v != "")
-    mine = set(int(v) for v in parts2[1].split(" ") if v != "")
+    winners = set(match.group(0) for match in re.finditer(r"\d+", parts2[0]))
+    mine = set(match.group(0) for match in re.finditer(r"\d+", parts2[1]))
     if len(winners.intersection(mine)) > 0:
       sum += 2 ** (len(winners.intersection(mine)) -1)
 
@@ -33,15 +33,15 @@ async def part2():
     parts = line.split(": ")
     match = re.match(r"Card +(\d+)", parts[0])
     assert match is not None
-    cards_number = int(match.group(1))
+    card_number = int(match.group(1))
     parts2 = parts[1].split(" | ")
-    winners = set(int(v) for v in parts2[0].split(" ") if v != "")
-    mine = set(int(v) for v in parts2[1].split(" ") if v != "")
+    winners = set(match.group(0) for match in re.finditer(r"\d+", parts2[0]))
+    mine = set(match.group(0) for match in re.finditer(r"\d+", parts2[1]))
     
     wins = len(winners.intersection(mine))
-    card = Card(cards_number, wins)
-    all_cards[cards_number] = card
-    deck.counts[cards_number] = 1
+    card = Card(card_number, wins)
+    all_cards[card_number] = card
+    deck.counts[card_number] = 1
     
   for card_number in all_cards.keys():
     card = all_cards[card_number]
@@ -52,10 +52,7 @@ async def part2():
       new_number = card_number + i
       deck.counts[new_number] += multiplier
     
-  sum = 0
-  for count in deck.counts.values():
-    sum += count
-  print(sum)
+  print(sum(count for count in deck.counts.values()))
 
 if __name__ == "__main__":
     asyncio.run(part1())
