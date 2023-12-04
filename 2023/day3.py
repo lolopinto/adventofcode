@@ -52,25 +52,25 @@ async def part1():
 async def part2():
   g = await Grid.square_grid_from_file("day3input")
 
-  curr = None
-  l = []
+  current_number_parts = None
+  current_number_coords = []
   stars = defaultdict(list)
   for r in range(g.height):
     for c in range(g.width):
       v = g.get_value(r, c)
       assert v is not None
       if v.isdigit():
-        if curr is None:
-          curr = []
-        curr.append(v)
-        l.append((r, c))
-      elif curr is not None:
-        num = int("".join(curr))
-        is_part, star_coord, symbol = check(g, num, l)
+        if current_number_parts is None:
+          current_number_parts = []
+        current_number_parts.append(v)
+        current_number_coords.append((r, c))
+      elif current_number_parts is not None:
+        num = int("".join(current_number_parts))
+        is_part, star_coord, symbol = check(g, num, current_number_coords)
         if is_part and symbol == '*':
           stars[star_coord].append(num)
-        curr = None
-        l = []
+        current_number_parts = None
+        current_number_coords = []
 
   print(sum(v[0] * v[1] for v in stars.values() if len(v) == 2))
 
