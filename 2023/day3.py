@@ -1,3 +1,4 @@
+from collections import defaultdict
 from utils import read_file
 from grid import Grid
 import asyncio
@@ -54,7 +55,7 @@ async def part2():
   curr = None
   l = []
   sum = 0
-  stars = {}
+  stars = defaultdict(list)
   for r in range(g.height):
     for c in range(g.width):
       v = g.get_value(r, c)
@@ -68,13 +69,11 @@ async def part2():
         num = int("".join(curr))
         is_part, star_coord, symbol = check(g, num, l)
         if is_part and symbol == '*':
-          l = stars.get(star_coord) or []
-          l.append(num)
-          stars[star_coord] = l
+          stars[star_coord].append(num)
         curr = None
         l = []
 
-  for k, v in stars.items():
+  for v in stars.values():
     if len(v) == 2:
       sum += v[0] * v[1]
   print(sum)
