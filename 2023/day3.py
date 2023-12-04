@@ -54,7 +54,6 @@ async def part2():
 
   curr = None
   l = []
-  sum = 0
   stars = defaultdict(list)
   for r in range(g.height):
     for c in range(g.width):
@@ -73,10 +72,7 @@ async def part2():
         curr = None
         l = []
 
-  for v in stars.values():
-    if len(v) == 2:
-      sum += v[0] * v[1]
-  print(sum)
+  print(sum(v[0] * v[1] for v in stars.values() if len(v) == 2))
 
 
 if __name__ == "__main__":
