@@ -1,5 +1,6 @@
 from aiofiles import open
 from typing import AsyncGenerator
+import re
 
 async def read_file(file: str) -> AsyncGenerator[str, None]:
   async with open(file) as f:
@@ -24,6 +25,9 @@ async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], 
         l = []
         next_empty = True
 
+
+def ints(s: str)-> list[int]:
+  return [int(match.group(0)) for match in re.finditer(r"\d+", s)]
 
 # TODO grid implementation
 
