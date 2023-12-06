@@ -37,14 +37,23 @@ async def part1():
           assert race is not None
           race.distance = distances[i]
         
-  # print(races)
   print(math.prod([race.ways_to_win() for race in races]))
 
 
 async def part2():
+  time = 0
+  distance = 0
   async for line in read_file("day6input"):
-    pass
+    parts = line.split(": ")
+    match parts[0]:
+      case "Time":
+        time = int("".join(parts[1].split()))
+        
+      case "Distance":
+        distance = int("".join(parts[1].split()))
 
+  race = Race(time, distance)
+  print(race.ways_to_win())        
 
 if __name__ == "__main__":
     asyncio.run(part1())
