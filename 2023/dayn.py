@@ -1,5 +1,9 @@
-from utils import read_file
+from __future__ import annotations
+from utils import read_file, ints
 import asyncio
+from collections import defaultdict
+from dataclasses import dataclass
+import re
 
 async def part1():
   async for line in read_file("day3input"):
