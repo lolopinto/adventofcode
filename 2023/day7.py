@@ -16,6 +16,8 @@ class HandType(enum.Enum):
   ONE_PAIR = 6
   HIGH_CARD = 7
 
+hand_type_value_to_key_map = { v.value: v for v in HandType }
+
 hand_strength = {
   'A': 14,
   'K': 13,
@@ -30,6 +32,22 @@ hand_strength = {
   '4': 4,
   '3': 3,
   '2': 2
+}
+
+hand_strength2 = {
+  'A': 14,
+  'K': 13,
+  'Q': 12,
+  'T': 10,
+  '9': 9,
+  '8': 8,
+  '7': 7,
+  '6': 6,
+  '5': 5,
+  '4': 4,
+  '3': 3,
+  '2': 2,
+  'J': 1,
 }
 
 @dataclass
@@ -64,15 +82,41 @@ class Hand:
         return HandType.HIGH_CARD
 
   @staticmethod
+  def determine_hand_type2(cards: str) -> HandType:
+    if not 'J' in cards or cards == 'JJJJJ':
+      return Hand.determine_hand_type(cards)
+    
+    counts = defaultdict(int)
+    for card in cards:
+      counts[card] += 1
+      
+    not_j = [key for key in counts.keys() if key != 'J']
+    hand_types = []
+    for key in not_j:
+      hand_types.append(Hand.determine_hand_type(cards.replace('J', key)).value)
+
+    least = min(hand_types)
+    return hand_type_value_to_key_map[least]
+
+  @staticmethod
   def cmp(obj1: Hand, obj2: Hand) -> int:
     if obj1.hand_type.value != obj2.hand_type.value:
       return obj1.hand_type.value - obj2.hand_type.value
 
     for c1, c2 in zip(obj1.cards, obj2.cards):
       if c1 != c2:
-        # bigger is better?
         return hand_strength[c2] - hand_strength[c1]
-        # return ord(c1) - ord(c2)
+
+    return 0
+
+  @staticmethod
+  def cmp2(obj1: Hand, obj2: Hand) -> int:
+    if obj1.hand_type.value != obj2.hand_type.value:
+      return obj1.hand_type.value - obj2.hand_type.value
+
+    for c1, c2 in zip(obj1.cards, obj2.cards):
+      if c1 != c2:
+        return hand_strength2[c2] - hand_strength2[c1]
 
     return 0
 
@@ -94,9 +138,21 @@ async def part1():
   print(result)
 
 async def part2():
+  hands = []
   async for line in read_file("day7input"):
-    pass
+    cards, bid = line.split()
+    hand_type = Hand.determine_hand_type2(cards)
+    card = Hand(cards, int(bid), hand_type)
+    hands.append(card)
+    
+  key = functools.cmp_to_key(Hand.cmp2)
+  sorted_hands = sorted(hands, key=key)
+  
+  result = 0
+  for i in range(len(sorted_hands)):
+    result += sorted_hands[i].bid * (len(sorted_hands) - i)
 
+  print(result)
 
 if __name__ == "__main__":
     asyncio.run(part1())
