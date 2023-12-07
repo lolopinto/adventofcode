@@ -7,7 +7,7 @@ import re
 import enum
 import functools
 
-class HandType(enum.Enum):
+class HandType(enum.IntEnum):
   FIVE_OF_A_KIND = 1
   FOUR_OF_A_KIND = 2
   FULL_HOUSE = 3
@@ -15,8 +15,6 @@ class HandType(enum.Enum):
   TWO_PAIR = 5
   ONE_PAIR = 6
   HIGH_CARD = 7
-
-hand_type_value_to_key_map = { v.value: v for v in HandType }
 
 hand_strength = {
   'A': 14,
@@ -92,10 +90,9 @@ class Hand:
     not_j = [key for key in counts.keys() if key != 'J']
     hand_types = []
     for key in not_j:
-      hand_types.append(Hand.determine_hand_type(cards.replace('J', key)).value)
+      hand_types.append(Hand.determine_hand_type(cards.replace('J', key)))
 
-    least = min(hand_types)
-    return hand_type_value_to_key_map[least]
+    return min(hand_types)
 
   @staticmethod
   def cmp(obj1: Hand, obj2: Hand) -> int:
