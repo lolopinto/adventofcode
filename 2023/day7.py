@@ -95,24 +95,15 @@ class Hand:
     return min(hand_types)
 
   @staticmethod
-  def cmp(obj1: Hand, obj2: Hand) -> int:
+  def cmp(obj1: Hand, obj2: Hand, for_joker=False) -> int:
     if obj1.hand_type.value != obj2.hand_type.value:
       return obj1.hand_type.value - obj2.hand_type.value
 
     for c1, c2 in zip(obj1.cards, obj2.cards):
       if c1 != c2:
+        if for_joker:
+          return hand_strength2[c2] - hand_strength2[c1]
         return hand_strength[c2] - hand_strength[c1]
-
-    return 0
-
-  @staticmethod
-  def cmp2(obj1: Hand, obj2: Hand) -> int:
-    if obj1.hand_type.value != obj2.hand_type.value:
-      return obj1.hand_type.value - obj2.hand_type.value
-
-    for c1, c2 in zip(obj1.cards, obj2.cards):
-      if c1 != c2:
-        return hand_strength2[c2] - hand_strength2[c1]
 
     return 0
 
@@ -141,7 +132,7 @@ async def part2():
     card = Hand(cards, int(bid), hand_type)
     hands.append(card)
     
-  key = functools.cmp_to_key(Hand.cmp2)
+  key = functools.cmp_to_key(lambda obj1, obj2: Hand.cmp(obj1, obj2, True))
   sorted_hands = sorted(hands, key=key)
   
   result = 0
