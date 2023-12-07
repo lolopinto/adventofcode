@@ -63,20 +63,19 @@ class Hand:
     for card in cards:
       counts[card] += 1
       
-    match len(counts):
-      case 1:
+    counts_sorted = sorted(counts.values(), reverse = True)
+    match counts_sorted:
+      case [5]:
         return HandType.FIVE_OF_A_KIND
-      case 2:
-        if 4 in counts.values():
+      case [4, 1]:
           return HandType.FOUR_OF_A_KIND
-        else:
+      case [3, 2]:
           return HandType.FULL_HOUSE
-      case 3:
-        if 3 in counts.values():
+      case [3, 1, 1]:
           return HandType.THREE_OF_A_KIND
-        else:
+      case [2, 2, 1]:
           return HandType.TWO_PAIR
-      case 4:
+      case [2, 1, 1, 1]:
         return HandType.ONE_PAIR
       case _:
         return HandType.HIGH_CARD
