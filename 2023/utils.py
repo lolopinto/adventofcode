@@ -27,7 +27,7 @@ async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], 
 
 
 def ints(s: str)-> list[int]:
-  return [int(match.group(0)) for match in re.finditer(r"\d+", s)]
+  return [int(v) for v in s.split()]
 
 # TODO grid implementation
 
