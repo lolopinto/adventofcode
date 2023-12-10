@@ -37,7 +37,7 @@ class Grid(Generic[T]):
     g = None
     r = 0
 
-    async for line in read_file("day3input"):
+    async for line in read_file(file):
       if not init:
         l = len(line)
         g = Grid.square_grid(l)
@@ -47,6 +47,14 @@ class Grid(Generic[T]):
         g.set(r, c, line[c])
       r += 1
     return g
+  
+  def print(self, *, none_value = "."):
+    for r in range(self.height):
+      for c in range(self.width):
+        val = self.data[r][c].value 
+        val = val if val is not None else none_value
+        print(val, end="")
+      print()
   
   def set(self, r: int, c: int, val: T):
     self.data[r][c].value = val
