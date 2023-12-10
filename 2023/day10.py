@@ -37,15 +37,25 @@ def get_neighbors(g: Grid, r: int, c: int):
       neighbors = [n for n in g.right_and_down(r, c) if g.get_value(n[0], n[1]) != "."]
     case "S":
       # assume this is correct
-      neighbors = [n for n in g.neighbors(r, c) if g.get_value(n[0], n[1]) != "."]
+      # find its fake neighbors
+      fake_neighbors = [n for n in g.neighbors(r, c) if g.get_value(n[0], n[1]) != "."]
+      neighbors = set()
+      # for each of its fake neighbors, check their neighbors and confirm that S is one of them
+      for n in fake_neighbors:
+        n2 = get_neighbors(g, n[0], n[1])
+        # check if S position is one of its neighbors' neighbors
+        if (r,c) in n2:
+          neighbors.add((n[0],n[1]))
+      assert len(neighbors) == 2
+
     case '.':
       raise ValueError(f"visiting ground at {r}, {c}")
     case _:
       raise ValueError(f"unknown value {val} at {r}, {c}")
     
   if len(neighbors) != 2:
-    print(len(neighbors), neighbors, val)
-    raise ValueError(f"expected 2 neighbors, got {len(neighbors)} at {r}, {c}")
+    print(neighbors, val, (r,c))
+    raise ValueError(f"expected 2 neighbors, got {len(neighbors)} at {r}, {c}, value: {val}")
 
   return neighbors
 
