@@ -245,6 +245,6 @@ class Grid(Generic[T]):
         continue
       else:
         print('no new curr')
-    print(start, mins)
+    # print(start, mins)
     return mins[end]
       

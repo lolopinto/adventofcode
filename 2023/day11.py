@@ -49,6 +49,9 @@ async def build_grid(file: str):
   # print(len(outputs)), print(len(outputs[0]))
   return g
 
+def distance(p1: tuple[int, int], p2: tuple[int, int]) -> int:
+  return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
 async def part1():
   g = await build_grid("day11input")
   # g.print()
@@ -74,13 +77,17 @@ async def part1():
   # not just the points 
 
   ct = 0
+  
+  seen_ct = defaultdict(int)
   for p1, p2 in combinations(galaxies, 2):
-    if ct % 1000 == 0:
-      print(ct)
+    seen_ct[p2] += 1
+    # if ct % 1000 == 0:
+    #   print(ct)
     ct += 1
     # print(p1, p2)
-    g2 = g.clone()
-    short = g2.dijkstra2(p1, p2)
+    # short = 0
+    # g2 = g.clone()
+    # short = g2.dijkstra2(p1, p2)
     # short = g.dijkstra2(p1, p2)
     # cache[p1] = cache.get(p1, {})
     # cache[p1][p2] = short
@@ -88,10 +95,10 @@ async def part1():
     # # cache[p2][p1] = short
     # cache[p2] = cache.get(p2, {})
     # cache[p2][p1] = short
-    shortest.append(short)
+    shortest.append(distance(p1, p2))
 
   print(sum(shortest))
-  # print(cache[(0,4)])
+  # print(seen_ct)
 
 async def part2():
   async for line in read_file("day11input"):
