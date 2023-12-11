@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypeVar, Generic
 from utils import read_file
+from collections import defaultdict
 
 T = TypeVar("T")
 
@@ -71,6 +72,13 @@ class Grid(Generic[T]):
   def visited(self, r: int, c: int) -> bool:
     return self.data[r][c].visited
   
+  
+  def clone(self) -> Grid[T]:
+    g = Grid(self.width, self.height)
+    for r in range(self.height):
+      for c in range(self.width):
+        g.set(r, c, self.get_value(r, c))
+    return g
   
   def neighbors(self, r: int, c: int) -> list[tuple[int, int]]:
     neighbors = []
@@ -163,3 +171,80 @@ class Grid(Generic[T]):
   def visit_neighbors(self, r: int, c: int):
     for n in self.neighbors(r, c):
       self.visit(n[0], n[1])
+      
+  
+  # dijkstra with no mins. just result
+  def dijkstra(self, start: tuple[int, int], end: tuple[int, int], seen_before: Optional[Callable] = None) -> int:
+    visited = set()
+    q = []
+    q.append((start, 0))
+    while len(q) > 0:
+      curr, dist = q.pop(0)
+      if curr == end:
+        return dist
+      visited.add(curr)
+      for n in self.neighbors(curr[0], curr[1]):
+        if seen_before is not None:
+          seen = seen_before(curr, n)
+          if seen != -1:
+            print('using seen', seen)
+            return dist + seen
+        if n not in visited:
+          q.append((n, dist + 1))
+    return -1
+  
+  # translating 2023 day 15  
+  def dijkstra2(self, start: tuple[int, int], end: tuple[int, int]) -> int:
+    q = set()
+    mins = defaultdict(int)
+    unvisitedmins = set()
+    for r in range(self.height):
+      for c in range(self.width):
+        q.add((r, c))
+
+    mins[start] = 0
+    
+    curr = start
+    while len(q) > 0:
+      curr_val = mins[curr]
+      
+      for n in self.neighbors(curr[0], curr[1]):
+        if self.visited(n[0], n[1]):
+          continue
+        
+        new_min = curr_val + 1
+        neighbor_min = mins[n]
+        
+        if neighbor_min == 0 or new_min < neighbor_min:
+          mins[n] = new_min
+          unvisitedmins.add(n)
+
+      if curr in q:          
+        q.remove(curr)
+      self.visit(curr[0], curr[1])
+      if curr in unvisitedmins:
+        unvisitedmins.remove(curr)
+      
+      if curr == end:
+        break
+      
+      min_so_far = None
+      new_curr = None
+      # print('unvisitedmins', unvisitedmins)
+      assert len(unvisitedmins) > 0
+      for n in unvisitedmins:
+        v = mins[n]
+        if v == 0 or self.visited(n[0], n[1]):
+          continue
+        if min_so_far is None or v < min_so_far:
+          min_so_far = v
+          new_curr = n
+          
+      if new_curr is not None:
+        curr = new_curr
+        continue
+      else:
+        print('no new curr')
+    print(start, mins)
+    return mins[end]
+      
