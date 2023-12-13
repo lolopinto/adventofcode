@@ -49,6 +49,24 @@ class Grid(Generic[T]):
       r += 1
     return g
   
+  # TODO kill square_grid_from_file above since it may not actually be square in all usages and this is better
+  @staticmethod
+  async def grid_from_file(file: str) -> Grid[str]:
+    lines = [line async for line in read_file(file)]
+
+    return Grid.from_lines(lines)
+  
+  @staticmethod
+  def from_lines(lines: list[str]) -> Grid[str]:
+    width = len(lines[0])
+    height = len(lines)
+
+    g = Grid(width, height)
+    for r in range(g.height):
+      for c in range(g.width):
+        g.set(r, c, lines[r][c])
+
+    return g  
   def print(self, *, none_value = "."):
     for r in range(self.height):
       for c in range(self.width):

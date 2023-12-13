@@ -8,6 +8,19 @@ async def read_file(file: str) -> AsyncGenerator[str, None]:
       yield line.strip()
       
 
+async def read_file_groups(file: str) -> AsyncGenerator[list[str], None]:
+  l = []
+  async with open(file) as f:
+    async for line in f:
+      line = line.strip()
+      if line == "":
+        yield l
+        l = []
+      else:
+        l.append(line)
+  if l:
+    yield l
+
 async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], None]:
   l = []
   next_empty = False
