@@ -266,3 +266,6 @@ class Grid(Generic[T]):
     # print(start, mins)
     return mins[end]
       
+      
+# TODO lines to get the lines
+# TODO rotate
