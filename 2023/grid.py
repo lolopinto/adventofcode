@@ -145,17 +145,18 @@ class Grid(Generic[T]):
   def top(self, r: int, c: int) -> list[tuple[int, int]]:
     result = []
     i = r - 1
-    while i >= 0:
+    while i > 0:
       i -= 1
       result.append((i, c))
     return result
   
+  # TODO come back this is wrong
   def bottom(self, r: int, c: int) -> list[tuple[int, int]]:
     result = []
     i = r + 1
     while i < self.height:
-      i += 1
       result.append((i, c))
+      i += 1
     return result
   
   def left(self, r: int, c: int) -> list[tuple[int, int]]:
