@@ -91,6 +91,14 @@ class Grid(Generic[T]):
   def visited(self, r: int, c: int) -> bool:
     return self.data[r][c].visited
   
+  def current_lines(self) -> list[str]:
+    result = []
+    for r in range(self.height):
+      line = ""
+      for c in range(self.width):
+        line += self.get_value(r, c)
+      result.append(line)
+    return result
   
   def clone(self) -> Grid[T]:
     g = Grid(self.width, self.height)
@@ -146,12 +154,11 @@ class Grid(Generic[T]):
   def top(self, r: int, c: int) -> list[tuple[int, int]]:
     result = []
     i = r - 1
-    while i > 0:
-      i -= 1
+    while i >= 0:
       result.append((i, c))
+      i -= 1
     return result
   
-  # TODO come back this is wrong
   def bottom(self, r: int, c: int) -> list[tuple[int, int]]:
     result = []
     i = r + 1
@@ -164,16 +171,16 @@ class Grid(Generic[T]):
     result = []
     i = c - 1
     while i >= 0:
-      i -= 1
       result.append((r, i))
+      i -= 1
     return result
   
   def right(self, r: int, c: int) -> list[tuple[int, int]]:
     result = []
     i = c + 1
     while i < self.width:
-      i += 1
       result.append((r, i))
+      i += 1
     return result
   
   def neighbors8(self, r: int, c: int) -> list[tuple[int, int]]:
