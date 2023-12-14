@@ -9,23 +9,7 @@ import itertools
 
 async def part1():
   g = await Grid.grid_from_file("day14input")
-  # for r in range(g.height):
-  #   for c in range(g.width):
-  #     # not a rock, nothing to do here
-  #     if g.get_value(r, c) != 'O':
-  #       continue
-
-  #     for r2, c2 in g.top(r, c):
-  #       print(r2, c2)
-  #       val = g.get_value(r2, c2)
-  #       if val != '.':
-  #         continue
-  #       # print('swapping')
-  #       g.set(r2, c2, 'O')
-  #       g.set(r, c, '.')
-  #   # break
-  #     # print(g.get_value(r, c))
-  # g.print()
+  g.print()
   
   # for each column
   for c in range(g.width):
@@ -38,11 +22,6 @@ async def part1():
         case 'O':
           continue
         
-      # # not relevant
-      # if g.get_value(r, c) != '.':
-      #   continue
-      # find everything below it
-
       for r2, c2 in g.bottom(r, c):
         # look for the next rock
         match g.get_value(r2, c2):
@@ -54,7 +33,7 @@ async def part1():
             g.set(r, c, 'O')
             break
   
-  # g.print()
+  g.print()
 
   sum = 0  
   for r in range(g.height):

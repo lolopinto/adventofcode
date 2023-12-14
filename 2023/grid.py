@@ -74,7 +74,8 @@ class Grid(Generic[T]):
         val = val if val is not None else none_value
         print(val, end="")
       print()
-  
+    print()
+
   def set(self, r: int, c: int, val: T):
     self.data[r][c].value = val
     
