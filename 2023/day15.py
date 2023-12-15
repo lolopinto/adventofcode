@@ -22,7 +22,7 @@ def parse(s: str) -> Info:
     idx = s.index('-')
     return Info(s[:idx], True, False, 0)
 
-def process(part: str) -> int:
+def hash(part: str) -> int:
   curr = 0
   for c in part:
     curr += ord(c)
@@ -33,7 +33,7 @@ def process(part: str) -> int:
 async def part1():
   async for line in read_file("day15input"):
     parts = line.split(",")
-    print(sum([process(part) for part in parts]))
+    print(sum([hash(part) for part in parts]))
 
 async def part2():
   boxes = defaultdict(list)
@@ -42,7 +42,7 @@ async def part2():
     for part in parts:
       info = parse(part)
 
-      box = process(info.label)
+      box = hash(info.label)
       
       if info.dash:
         for idx in range(len(boxes[box])):
@@ -58,6 +58,7 @@ async def part2():
             found = True
             # replace
             boxes[box][idx] = info
+            break
 
         if not found:
           boxes[box].append(info)
