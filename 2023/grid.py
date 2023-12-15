@@ -199,7 +199,35 @@ class Grid(Generic[T]):
     for n in self.neighbors(r, c):
       self.visit(n[0], n[1])
       
-  
+  def rotate_left(self) -> Grid:
+    # saw this on the internet based on 2023 day 13
+
+    # lines = [*zip(*self.current_lines())]
+    # g = Grid.from_lines(lines)
+    # return g
+
+    # this is easier to read I think lol
+    # flipped
+    g = Grid(self.height, self.width)
+    for r in range(self.height):
+      for c in range(self.width):
+        r2 = c
+        c2 = r
+        g.set(r2, c2, self.get_value(r, c))
+        
+    return g
+    
+  def rotate_right(self) -> Grid:
+    # flipped
+    g = Grid(self.height, self.width)
+    for r in range(self.height):
+      for c in range(self.width):
+        r2 = self.width - c - 1
+        c2 = r
+        g.set(r2, c2, self.get_value(r, c))
+        
+    return g
+    
   # dijkstra with no mins. just result
   def dijkstra(self, start: tuple[int, int], end: tuple[int, int], seen_before: Optional[Callable] = None) -> int:
     visited = set()
