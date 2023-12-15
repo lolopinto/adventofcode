@@ -7,6 +7,21 @@ import re
 from grid import Grid
 import itertools
 
+@dataclass
+class Info:
+  label: str
+  dash: bool
+  equal: bool
+  focal: int
+
+def parse(s: str) -> Info:
+  idx = s.find('=')
+  if idx != -1:
+    return Info(s[:idx], False, True, int(s[idx+1:]))
+  else:
+    idx = s.index('-')
+    return Info(s[:idx], True, False, 0)
+
 def process(part: str) -> int:
   curr = 0
   for c in part:
@@ -21,8 +36,37 @@ async def part1():
     print(sum([process(part) for part in parts]))
 
 async def part2():
+  boxes = defaultdict(list)
   async for line in read_file("day15input"):
-    pass
+    parts = line.split(",")
+    for part in parts:
+      info = parse(part)
+
+      box = process(info.label)
+      
+      if info.dash:
+        for idx in range(len(boxes[box])):
+          item = boxes[box][idx]
+          if item.label == info.label:
+            boxes[box].pop(idx)
+            break
+      else:
+        found = False
+        for idx in range(len(boxes[box])):
+          item = boxes[box][idx]
+          if item.label == info.label:
+            found = True
+            # replace
+            boxes[box][idx] = info
+
+        if not found:
+          boxes[box].append(info)
+
+  res = 0
+  for k, l in boxes.items():
+    for idx in range(len(l)):
+      res += ((k + 1) * (idx + 1) * l[idx].focal)
+  print(res)
 
 
 if __name__ == "__main__":
