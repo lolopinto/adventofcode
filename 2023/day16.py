@@ -8,10 +8,10 @@ from grid import Grid
 import itertools
 
 def process_beam(g: Grid, d: str, curr: tuple[int, int], energized: set[tuple[int, int]]):
-  r, c = curr
-  if r < 0 or r >= g.height or c < 0 or c >= g.width:
-    print(f'discarding beam @ {r,c} going in dir {d}')
-    return
+  # r, c = curr
+  # if r < 0 or r >= g.height or c < 0 or c >= g.width:
+  #   print(f'discarding beam @ {r,c} going in dir {d}')
+  #   return
   # if curr in energized:
   #   print(f'already energized @ {curr}')
   #   return
@@ -22,7 +22,6 @@ def process_beam(g: Grid, d: str, curr: tuple[int, int], energized: set[tuple[in
     'U': (-1, 0),
     'D': (1, 0),
   }
-  
   left_mirror = {  # '/' mirror
       'R': 'U',
       'U': 'R',
@@ -38,78 +37,75 @@ def process_beam(g: Grid, d: str, curr: tuple[int, int], energized: set[tuple[in
 
   while True:
     r, c = curr
+    if r < 0 or r >= g.height or c < 0 or c >= g.width:
+      print(f'discarding beam @ {r,c} going in dir {d}')
+      break
+
     if (r, c, d) in energized:
       print(f'already energized @ {r, c, d}')
       break
 
-    energized.add((r, c, d))
-    
-    delta = dirs[d]
-    r2, c2 = curr[0] + delta[0], curr[1] + delta[1]
-    if r2 < 0 or r2 >= g.height or c2 < 0 or c2 >= g.width:
-      print(f'discarding beam @ {r2,c2} going in dir {d}')
-      break
+    energized.add((r, c, d))    
 
-    v = g.get_value(r2, c2)
+    v = g.get_value(r, c)
     # energize new spot 
     # energized.add((r2, c2))
-    print(f"curr {curr}, dir: {d}, delta: {delta}, new:{(r2, c2)}")
-
-    # if r2 < 0 or r2 >= g.height or c2 < 0 or c2 >= g.width:
-    #   break
-    
-      # raise ValueError(f"out of bounds at {r2}, {c2}, {d}, {curr[0]}, {curr[1]}")
-
-    # reached the end
-    # if r2 == g.width - 1:
-    #   break
-
-    curr = (r2, c2)
 
     match v:
       case '.':
         # continues in same direction
         # print('continuing. hit empty space')
         # energized.add((r2, c2, d))
-        continue
+        pass
+        # continue
       case '/':
         print(f'left mirror, changing direction from {d} -> {left_mirror[d]}')
         d = left_mirror[d]
         # energized.add((r2, c2))
-        continue
+        # pass
       case '\\':
         print(f'right mirror, changing direction from {d} -> {right_mirror[d]}')
 
         d = right_mirror[d]
         # energized.add((r2, c2))
-        continue
+        # continue
       case '|':
         # pointy end of splitter, continue
         if d in ['U', 'D']:
           print('pointy head of | splitter. continue')
           # energized.add((r2, c2))
-          continue
-
+          # continue
+        else:
         # otherwise, split
-        print(f'flat side of | splitter, splitting into U,D @ {r2, c2}')
-        process_beam(g, 'U', (r2, c2), energized)
-        process_beam(g, 'D', (r2, c2), energized)
-        break
+          print(f'flat side of | splitter, splitting into U,D @ {r, c}')
+          # energized.add((r2, c2, d))
+          process_beam(g, 'U', (r, c), energized)
+          process_beam(g, 'D', (r, c), energized)
+          break
+
       case '-':
         if d in ['R', 'L']:
           print('pointy head of - splitter. continue')
           # energized.add((r2, c2))
-          continue
-        print(f'flat side of - splitter, splitting into R,L @ {r2, c2}')
+          # continue
+        else:
+          print(f'flat side of - splitter, splitting into R,L @ {r, c}')
 
-        # otherwise, split
-        # if not (r2, c2) in energized:
-        process_beam(g, 'R', (r2, c2), energized)
-        process_beam(g, 'L', (r2, c2), energized)
-        break
+          # otherwise, split
+          # if not (r2, c2) in energized:
+          # energized.add((r2, c2, d))
+          process_beam(g, 'R', (r, c), energized)
+          process_beam(g, 'L', (r, c), energized)
+          break
       case _:
-        raise ValueError("unknown value {v} at {r2}, {c2}")
+        raise ValueError("unknown value {v} at {r}, {c}")
 
+    delta = dirs[d]
+    r2, c2 = r + delta[0], c + delta[1]
+
+    print(f"curr {curr}, dir: {d}, delta: {delta}, potential:{(r2, c2)}")
+
+    curr = (r2, c2)
 
 async def part1():
   g = await Grid.grid_from_file("day16input")
@@ -143,3 +139,4 @@ async def part2():
 if __name__ == "__main__":
     asyncio.run(part1())
     asyncio.run(part2())
+
