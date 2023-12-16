@@ -8,14 +8,6 @@ from grid import Grid
 import itertools
 
 def process_beam(g: Grid, d: str, curr: tuple[int, int], energized: set[tuple[int, int]]):
-  # r, c = curr
-  # if r < 0 or r >= g.height or c < 0 or c >= g.width:
-  #   print(f'discarding beam @ {r,c} going in dir {d}')
-  #   return
-  # if curr in energized:
-  #   print(f'already energized @ {curr}')
-  #   return
-
   dirs = {
     'R': (0, 1),
     'L': (0, -1),
@@ -38,64 +30,36 @@ def process_beam(g: Grid, d: str, curr: tuple[int, int], energized: set[tuple[in
   while True:
     r, c = curr
     if r < 0 or r >= g.height or c < 0 or c >= g.width:
-      # print(f'discarding beam @ {r,c} going in dir {d}')
       break
 
     if (r, c, d) in energized:
-      # print(f'already energized @ {r, c, d}')
       break
 
     energized.add((r, c, d))    
 
     v = g.get_value(r, c)
-    # energize new spot 
-    # energized.add((r2, c2))
 
     match v:
       case '.':
         # continues in same direction
-        # print('continuing. hit empty space')
-        # energized.add((r2, c2, d))
         pass
-        # continue
-      case '/':
-        # print(f'left mirror, changing direction from {d} -> {left_mirror[d]}')
-        d = left_mirror[d]
-        # energized.add((r2, c2))
-        # pass
-      case '\\':
-        # print(f'right mirror, changing direction from {d} -> {right_mirror[d]}')
 
+      case '/':
+        d = left_mirror[d]
+
+      case '\\':
         d = right_mirror[d]
-        # energized.add((r2, c2))
-        # continue
+
       case '|':
-        # pointy end of splitter, continue
-        if d in ['U', 'D']:
-          pass
-          # print('pointy head of | splitter. continue')
-          # energized.add((r2, c2))
-          # continue
-        else:
-        # otherwise, split
-          # print(f'flat side of | splitter, splitting into U,D @ {r, c}')
-          # energized.add((r2, c2, d))
+        # flat side of splitter, split
+        if d not in ['U', 'D']:
           process_beam(g, 'U', (r, c), energized)
           process_beam(g, 'D', (r, c), energized)
           break
 
       case '-':
-        if d in ['R', 'L']:
-          pass
-          # print('pointy head of - splitter. continue')
-          # energized.add((r2, c2))
-          # continue
-        else:
-          # print(f'flat side of - splitter, splitting into R,L @ {r, c}')
-
-          # otherwise, split
-          # if not (r2, c2) in energized:
-          # energized.add((r2, c2, d))
+        # flat side of splitter, split
+        if d not in ['R', 'L']:
           process_beam(g, 'R', (r, c), energized)
           process_beam(g, 'L', (r, c), energized)
           break
@@ -105,18 +69,13 @@ def process_beam(g: Grid, d: str, curr: tuple[int, int], energized: set[tuple[in
     delta = dirs[d]
     r2, c2 = r + delta[0], c + delta[1]
 
-    # print(f"curr {curr}, dir: {d}, delta: {delta}, potential:{(r2, c2)}")
-
     curr = (r2, c2)
 
 
 def do_work(g: Grid, s: tuple[int, int], d: s)-> int:
-  # s = (0, 0)
-  # d = 'R'
   energized = set()
   process_beam(g, d, s, energized)
   
-  # print(len(energized))
   coords = set((r,c) for (r, c, d) in energized)
   return len(coords)
 
@@ -151,8 +110,6 @@ async def part2():
   print(max(vals))
 
 
-
 if __name__ == "__main__":
     asyncio.run(part1())
     asyncio.run(part2())
-
