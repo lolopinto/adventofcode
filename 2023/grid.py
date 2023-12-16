@@ -67,6 +67,7 @@ class Grid(Generic[T]):
         g.set(r, c, lines[r][c])
 
     return g  
+
   def print(self, *, none_value = "."):
     for r in range(self.height):
       for c in range(self.width):
@@ -91,6 +92,13 @@ class Grid(Generic[T]):
   def visited(self, r: int, c: int) -> bool:
     return self.data[r][c].visited
   
+  def find(self, v: Any) -> tuple[int, int] | None:
+    for r in range(self.height):
+      for c in range(self.width):
+        if self.get_value(r, c) == v:
+          return (r, c)
+    return None
+
   def current_lines(self) -> list[str]:
     result = []
     for r in range(self.height):

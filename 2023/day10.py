@@ -10,12 +10,6 @@ from grid import Grid
 
 def get_neighbors(g: Grid, r: int, c: int):
   val = g.get_value(r, c)
-  # neighbors = g.neighbors(r, c)
-  # neighbors = [n for n in neighbors if g.get_value(n[0], n[1]) != "."]
-
-  # # assume nothing to do here
-  # if len(neighbors) == 2:
-  #   return neighbors
 
   match val:
     case '|':
@@ -59,55 +53,65 @@ def get_neighbors(g: Grid, r: int, c: int):
 
   return neighbors
 
-async def part1():
-  g = await Grid.square_grid_from_file("day10input")
-
-  # g.print()
-  start = None
-
-  for r in range(g.height):
-    for c in range(g.width):
-      if g.get_value(r, c) == "S":
-        start = (r, c)
-        break
-
+def get_distances(g: Grid):
+  start = g.find("S")
   assert start is not None
   
-  # distances = defaultdict(int)
   q = []
   q.append(start)
-  # distances[start] = 0
-  g2 = Grid.square_grid(g.width)
-  g2.set(start[0], start[1], 0)
+  distances = defaultdict(int)
+  distances[start] = 0
   g.visit(start[0], start[1])
   
   while len(q) > 0:
     (r, c) = q.pop(0)
     
-    distance = g2.get_value(r, c) if g2.get_value(r, c) is not None else 0
-    # neighbors without ground
+    distance = distances[(r, c)]
     neighbors = get_neighbors(g, r, c)
-    # neighbors = [n for n in neighbors if g.get_value(n[0], n[1]) != "."]
-    # print(len(neighbors), neighbors, g.get_value(r, c))
-    # if len(neighbors) !=2:
-    #   print(len(neighbors), neighbors, g.get_value(r, c))
     
-    for n in neighbors:
-      r2, c2 = n
+    for r2,c2 in neighbors:
       if g.visited(r2, c2):
         continue
       g.visit(r2, c2)
-      q.append(n)
-      g2.set(r2, c2, distance + 1)
-      # distances[n] = distance + 1
+      q.append((r2, c2))
+      distances[(r2, c2)] = distance + 1
+  return distances
 
-  # g2.print()
-  print(max(g2.get_value(r,c) for r in range(g2.height) for c in range(g2.width) if g2.get_value(r, c) != None))
+async def part1():
+  g = await Grid.square_grid_from_file("day10input")
 
+  distances = get_distances(g)
+  print(max(distances.values()))
+
+# for part 2, i mostly had to use reddit and others solutions to get this to work
+# uses https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm
+# https://www.reddit.com/r/adventofcode/comments/18evyu9/comment/kcqtow6/ amongst others was helpful in getting this to work
+# builds on top of existing solution for part 1 (get_distances) 
 async def part2():
-  async for line in read_file("day10input"):
-    pass
+  g = await Grid.square_grid_from_file("day10input")
 
+  distances = get_distances(g)
+
+  inside = 0
+  for r in range(g.height):
+    for c in range(g.width):
+      if (r,c) in distances:
+        continue
+
+      r2, c2 = r, c
+      crosses = 0
+
+      while r2 < g.height and c2 < g.width:
+        v = g.get_value(r2, c2)
+        if (r2, c2) in distances and v != "L" and v != '7':
+          crosses += 1
+        r2 += 1
+        c2 += 1
+
+      if crosses % 2 == 1:
+        inside += 1
+
+  print(inside)
 
 if __name__ == "__main__":
     asyncio.run(part1())
