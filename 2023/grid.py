@@ -85,6 +85,9 @@ class Grid(Generic[T]):
   
   def get_value(self, r: int, c: int) -> T:
     return self.data[r][c].value
+  
+  def get_int(self, r: int, c: int) -> int:
+    return int(self.data[r][c].value)
 
   def visit(self, r: int, c: int):
     self.data[r][c].visited = True
@@ -306,9 +309,7 @@ class Grid(Generic[T]):
       if new_curr is not None:
         curr = new_curr
         continue
-      else:
-        print('no new curr')
-    # print(start, mins)
+
     return mins[end]
       
       
