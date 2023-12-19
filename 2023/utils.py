@@ -20,6 +20,14 @@ async def read_file_groups(file: str) -> AsyncGenerator[list[str], None]:
         l.append(line)
   if l:
     yield l
+    
+async def get_file_groups(file: str)-> list[list[str]]:
+  groups = []
+
+  async for group in read_file_groups(file):
+    groups.append(group)
+
+  return groups
 
 async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], None]:
   l = []
