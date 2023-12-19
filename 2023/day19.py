@@ -69,24 +69,13 @@ class Workflow:
       deps.append(parts[-1])
     return deps
   
-  # instead of counts, return valid ranges that are correct
-  # e.g. x: 0-4000
-  # m: 0-1716
-  # a: 0-1338
-  # s: 0-1338
-  def count(self, workflows: dict[str, Workflow]):
-    # res = 0
-    # start = 4000
-
-    # this is not accounting for different values of xmas
-    # so the 4000 needs to account for that.
-    # e.g. 4000 permuations of x, 4000 permutations of m and then multiply and add as necessary?
-
-    result = defaultdict(list)
+  def count(self, workflows: dict[str, Workflow], results: dict[str, int]):
+    result = 0
     
     curr_range = (1, 4001)
     curr_key = None
 
+    ranges = []
     for rule in self.rules:
       parts = rule.split(":")
       
@@ -102,12 +91,10 @@ class Workflow:
         # less than 
         if len(parts_less) == 2:
           v = int(parts_less[1])
-          # times = len(range(int(parts_less[1])))
           curr_range = (1, v)
           delta_range = (v, 4001)
           curr_key = parts_less[0]
         else:
-          # times = len(range(int(parts_right[1]) +1, 4001))
           v = int(parts_right[1])
           curr_range = (v + 1, 4001)
           delta_range = (1, v + 1)
@@ -116,61 +103,56 @@ class Workflow:
 
         # now evaluate the rest of the rules, how many times
         rule_key = parts[1]
+
+        ranges.append((curr_key, curr_range))
+
       else:
         rule_key = rule
 
 
       assert curr_range is not None
       assert curr_key is not None
-
+      
       # so wanna change the result to be dependent not what we have here
       # for in, we want (1, 1351) -> px
       # and rest -> qqz 
       
-      res = self.count_part2(rule_key, workflows)
-      match res:
-        case True: 
-          result[curr_key].append(curr_range)
-        case False:
-          continue
-        case _:
-          # dict 
-          # print(f"other dict {rule}", result, res)
-          result[curr_key].append(curr_range)
-          for k, v in res.items():
-            result[k].extend(v)
+      res = self.count_part2(rule_key, results)
       
-      if delta_range is not None: 
+      keys = set()
+      # l = len(range(curr_range[0], curr_range[1]))
+      l = 1
+      for r in ranges:
+        keys.add(r[0])
+        length = len(range(r[1][0], r[1][1]))
+        l *= length
+
+      # if self.id == 'rfg':
+      print(ranges)      
+      # TODO need to handle repeated ranges
+      # assert len(keys) == len(ranges)
+      print('adding', l * res)
+      result += l * res
+      
+      if delta_range is not None:
+        # remove last range, add delta range as new range
+        ranges.pop(-1)
+        ranges.append((curr_key, delta_range))
+
+        # ranges.append((curr_key, curr_range))
         curr_range = delta_range
-          
-      # else:
-      #   assert curr_range is not None
-      #   assert curr_key is not None
 
-
-      # # TODO 
-      #   res = self.count_part2(rule, workflows)
-      #   match res:
-      #     case True: 
-      #       result[curr_key].append(curr_range)
-      #     case False:
-      #       continue
-      #     case _:
-      #       # dict 
-      #       # print(f"other dict {rule}", result, res)
-      #       for k, v in res.items():
-      #         result[k].extend(v)
 
     return result    
 
-  def count_part2(self, str: s, workflows: dict[str, Workflow]) -> bool | defaultdict(list):
+  def count_part2(self, str: s, results: dict[str, int]) -> int:
     match str:
       case 'A':
-        return True
+        return 1
       case 'R':
-        return False
+        return 0
       case _:
-        return workflows[str].count(workflows)
+        return results[str]
 
 
 @dataclass
@@ -227,7 +209,7 @@ async def part2():
     workflows[w.id] = w
     deps_list[w.id] = w.deps()
 
-  print(len(deps_list))
+  # print(len(deps_list))
     
   done = set()
 
@@ -255,54 +237,35 @@ async def part2():
   deps_tree_sorted = sorted(deps_tree_sorted, key=lambda x: len(x[1]))
   # last should be in
   assert deps_tree_sorted[-1][0] == "in"
-  print(deps_tree_sorted)
-  print(done)
+  # print(deps_tree_sorted)
+  # print(done)
   
   # lets start simple
-  candidates = [x for x in deps_tree_sorted if len(x[1]) < 100]
-  # candidates = deps_tree_sorted
-  print(candidates)
+  candidates = [x for x in deps_tree_sorted if len(x[1]) <= 10]
+  
+  # print('candidates', candidates)
+  results = {}
 
-# 0
-# lnx 4000
-# pv 1716
-# gd 0
-# crn 1338
-
-  for cand in candidates:
-    w = workflows[cand[0]]
-    print(w.id, w.count(workflows))
-
-  # solution once things are working?
-  # workflows["in"].count(workflows)
-
-  # s = 0
-  # for _ in groups[1]:
-  #   w = workflows["in"]
-  #   s += w.count(workflows)
-  # print(s)
-
-
-  # print(done)
-  # do we actually need this
-  # l = list(deps_tree.keys())
-  # print(all(v in done for v in l))
-  # print(len(deps_tree.keys()))
-
-  # deps_tree = workflows.copy()
-  # while len(deps_tree) > 0:
-  # need to build dependency tree
-
-  # s = 0
-  # for line in groups[1]:
-  #   r = Rating.parse(line)
-  #   start = workflows["in"]
-  #   # cond = start.conditions(r, workflows)
-  #   # print(cond)
-  #   # s += cond
+  # order matters here
+  # going in order of dependencies
+  for k, _ in deps_tree_sorted:
+    yay = False
+    for cand in candidates:
+      if k == cand[0]:
+        yay = True
+        break
+    if not yay:
+      continue
+    print(f"processing {k}")
+    w = workflows[k]
+    ret = w.count(workflows, results)
+    print(k, ret)
+    results[k] = ret
     
-    
-  # print(s)
+  # this doesn't have distinct?!
+  # back to ranges lol?
+  print(results)
+
 
 if __name__ == "__main__":
     # asyncio.run(part1())
