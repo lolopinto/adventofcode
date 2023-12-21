@@ -76,6 +76,11 @@ class Grid(Generic[T]):
         print(val, end="")
       print()
     print()
+    
+  def walk(self):
+    for r in range(self.height):
+      for c in range(self.width):
+        yield (r, c)
 
   def set(self, r: int, c: int, val: T):
     self.data[r][c].value = val
