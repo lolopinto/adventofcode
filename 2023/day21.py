@@ -6,13 +6,13 @@ from dataclasses import dataclass
 import re
 from grid import Grid
 import itertools
+from infinite_grid import InfiniteGrid
 
 async def part1():
   g = await Grid.grid_from_file("day21input")
   
   start = g.find('S')
   assert start is not None
-  # TODO 64
   l = {start}
   for i in range(64):
     l2 = set()
@@ -25,14 +25,32 @@ async def part1():
 
   print(len(l))
 
-  async for line in read_file("day21input"):
-    pass
-
-
 async def part2():
-  async for line in read_file("day21input"):
-    pass
+  temp = await Grid.grid_from_file("day21input")
+  
+  start = temp.find('S')
+  assert start is not None
+  
+  g = InfiniteGrid.from_grid(temp)
+  l = {start}
+  # if we can't even do this on its own before infinite...
+  
+  # cycle in first 1000 before infinite, now we need to do infinite
+  # 15453 too low  based on seeing the wrap in first 1000
+  for i in range(500):
+    l2 = set()
+    for curr in l:
+      for n in g.neighbors(curr):
+        v = g.get_valuex(n)
+        if v == '.' or v == 'S':
+          l2.add(n)
+        
+    print(i+1 ,len(l2))
+    
+    # can't see any tren
+    l = l2
 
+  print(len(l))
 
 if __name__ == "__main__":
     asyncio.run(part1())

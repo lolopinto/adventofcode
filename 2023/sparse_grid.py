@@ -1,10 +1,12 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 import math 
+from grid import Grid
 
 @dataclass
 class SparseGrid:
-  data: dict[tuple[int, int], int]
+  data: dict[tuple[int, int], Any]
   
   def __init__(self):
     self.data = {}
@@ -13,6 +15,13 @@ class SparseGrid:
     self.min_col = None
     self.max_col = None
     
+  @staticmethod
+  def from_grid(g: Grid) -> SparseGrid:
+    ret = SparseGrid()
+    for (r, c) in g.walk():
+      ret.set(r, c, g.get_value(r, c))
+    return ret
+
   def set(self, pos: tuple[int, int], v: Any):
     self.data[pos] = v
     if self.min_row is None:
