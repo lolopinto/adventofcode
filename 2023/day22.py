@@ -87,8 +87,6 @@ class Brick:
       prev_start = start
       prev_end = end
   
-    # we actually wanna do it from the lowest zs so they can settle
-
     # nothing to do here    
     if prev_start == self.start and prev_end == self.end or prev_start is None or prev_end is None:
       return
@@ -104,9 +102,12 @@ class Brick:
     for p in self.positions():
       positions.add(p)
 
-    
 
-async def part1():
+  def disintegrate(self, positions: set[tuple[int, int, int]]):
+    for p in self.positions():
+      positions.remove(p)
+
+async def parse_and_sort():
   bricks = []
 
   positions = set()
@@ -122,7 +123,11 @@ async def part1():
 
   # sort bricks
   bricks.sort(key=lambda b: b.start[2])
-  
+  return bricks, positions
+
+async def part1():
+  bricks, positions = await parse_and_sort()
+
   # sort bricks, then settle them
   for b in bricks:
     b.settle(positions)
@@ -131,8 +136,6 @@ async def part1():
   for b in bricks:
     dupe = positions.copy()
     for p in b.positions():
-      if not p in dupe:
-        print(f'{p} is missing for brick {b}')
       dupe.remove(p)
     changed = False
     
@@ -140,12 +143,10 @@ async def part1():
     for b2 in bricks:
       if b == b2:
         continue
-      prev_start = b2.start
-      prev_end = b2.end
       
       b3 = b2.clone()
       b3.settle(dupe)
-      if prev_start != b3.start or prev_end != b3.end:
+      if b2.start != b3.start or b2.end != b3.end:
         changed = True
         break
     
@@ -153,13 +154,35 @@ async def part1():
       ct += 1
       
   print(ct)    
-    
 
 
 async def part2():
-  async for line in read_file("day22input"):
-    pass
+  bricks, positions = await parse_and_sort()
 
+  # sort bricks, then settle them
+  for b in bricks:
+    b.settle(positions)
+
+  values = []
+  for b in bricks:
+    dupe = positions.copy()
+
+    # disintegrate this brick
+    b.disintegrate(dupe)
+    
+    count_changed = 0 
+    for b2 in bricks:
+      if b == b2:
+        continue
+        
+      b3 = b2.clone()
+      b3.settle(dupe)
+      if b2.start != b3.start or b2.end != b3.end:
+        count_changed += 1
+    
+    values.append(count_changed)
+    
+  print(sum(values))
 
 if __name__ == "__main__":
     asyncio.run(part1())
