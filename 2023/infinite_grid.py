@@ -54,7 +54,6 @@ class InfiniteGrid:
       # update grid with new values that are being added 
       if change:
         self.data[n] = self.get_value((r2, c2))
-      pass
 
     return neighbors
     

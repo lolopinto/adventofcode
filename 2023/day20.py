@@ -7,6 +7,7 @@ import re
 from grid import Grid
 import itertools
 import enum
+import math
 
 class PulseType(enum.Enum):
   HIGH = 'high'
@@ -58,7 +59,7 @@ class Module:
     return pulse_to_send;
           
   @staticmethod
-  def press_button(modules: dict[str, Module], *, find_low_rx=False):
+  def press_button(modules: dict[str, Module], *, find_high_pulse_for=None):
     to_process = []
     # source, destination, pulse
     to_process.append(('button', 'broadcaster', PulseType.LOW))
@@ -67,9 +68,6 @@ class Module:
     high = 0
     while len(to_process) > 0:
       source, destination, pulse_type = to_process.pop(0)
-      
-      # print(f"Sending {pulse_type} from {source} to {destination}")
-      # print(f"{source} -> {pulse_type.value} -> {destination}")
 
       if pulse_type == PulseType.HIGH:
         high += 1
@@ -81,11 +79,13 @@ class Module:
 
       m = modules[destination]
       pulse_to_send = m.receive_pulse(pulse_type, modules, source)
+
       
-      # if find_low_rx and pulse_to_send == PulseType.HIGH and m.name == 'rx':
-      #   return True
-      if find_low_rx and pulse_to_send == PulseType.LOW and m.name == 'rx':
-        return True
+      if find_high_pulse_for is not None and \
+        m.name in find_high_pulse_for and \
+        pulse_to_send == PulseType.HIGH:
+        # print(f'source {source} {m.name} {find_high_pulse_for}')
+        return m.name
 
       if pulse_to_send is None:
         continue
@@ -153,33 +153,45 @@ async def part1():
 async def part2():
   modules, conjunctions = await parse_input()
 
-  # rs -> rx  
-  print(conjunctions)
-  keys = modules['rs'].received.keys()
+  # this one randomly depends on the fact that the input 
+  # seems to be 4 conjunctions -> 1 conjunction -> output so we can
+  # depend on the fact that a conjunction sends low when it's received all highs
+  # so we'll look for when each conjunction which is the first in the chain receives
+  # it's high and then assume no overlaps and then find the lcm of the number of button
+  # presses it takes to get each for the first time as the time they all converge and have all 
+  # high which means they have all sent a high to rs which then sends a low to rx 
+  # i was on the right track for the first day i attempted this but gave up :|
+  # too many tricks this year
+  
+  # rs -> rx
+  rx_received = [m.name for m in modules.values() if 'rx' in m.destinations]
+  assert len(rx_received) == 1
+  assert modules[rx_received[0]].conjunction is True
+  # bt, dl, fr, rv
+  keys = modules[rx_received[0]].received.keys()
+  # print(keys)
+ 
+  # all conjunctions
+  assert all(modules[k].conjunction for k in keys)
 
+  values = {}
   count = 1
-  while True:
-    ret = Module.press_button(modules, find_low_rx=True)
-    all_off = all(m.pulse_state == PulseState.OFF for m in modules.values())
-    all_on = all(m.pulse_state == PulseState.ON for m in modules.values())
-    if all_off:
-      print(f"all off after {count} presses")
-
-    if all_on:
-      print(f"all on after {count} presses")
-
-    # for k in keys:
-    #   # print(f"{k} is {modules[k].name}")
-    #   if modules[k].pulse_state == PulseState.ON:
-    #     print(f"{k} is on")
-
-    count += 1
     
-    if count == 100_000:
+  while True:
+    # not sure why i'm seeing repeateds in the way i wrote this 
+    # but i had to change this from a list to a map so it only works
+    # for the first time it sees each one
+    ret = Module.press_button(modules, find_high_pulse_for=keys)
+    if isinstance(ret, str) and ret not in values:
+      values[ret] = count
+    count += 1
+
+    if len(values) == len(keys):
       break
 
-  print(count)
+  print(math.lcm(*values.values()))
+  
 
 if __name__ == "__main__":
-    # asyncio.run(part1())
+    asyncio.run(part1())
     asyncio.run(part2())
