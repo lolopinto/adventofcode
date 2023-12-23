@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import re
 from grid import Grid
 import itertools
+import enum
+import math
 
 async def part1():
   async for line in read_file("day3input"):
