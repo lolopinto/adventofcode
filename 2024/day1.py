@@ -1,5 +1,6 @@
 from utils import read_file
 import asyncio
+from collections import defaultdict
 
 
 async def part1():
@@ -19,7 +20,21 @@ async def part1():
     
   print(ans)
 
+async def part2():
+  l = []
+  occurrences = defaultdict(int)
+  async for line in read_file("day1input"):
+    parts = line.split()
+    l.append(int(parts[0]))
+    
+    occurrences[int(parts[1])] += 1
+
+  ans = 0 
+  for i in l:
+    ans += occurrences[i] * i
+    
+  print(ans)
 
 if __name__ == "__main__":
-    asyncio.run(part1())
-    # asyncio.run(part2())
+    # asyncio.run(part1())
+    asyncio.run(part2())
