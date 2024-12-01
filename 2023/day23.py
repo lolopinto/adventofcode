@@ -71,8 +71,8 @@ async def part1():
 
 
 async def part2():
-  pass
-  # print(await longest_path(True))
+  # pass
+  print(await longest_path(False))
   # g = await Grid.grid_from_file("day23input")
   
   # start = None  
