@@ -9,9 +9,8 @@ import itertools
 import enum
 import math
 
-async def part1():
+async def solve(ops: list[str]) -> int:
   res = 0
-
   async for line in read_file("day7input"):
     left, right = line.split(": ")
     value = int(left)
@@ -20,16 +19,19 @@ async def part1():
     assert len(values) >= 2
 
     def perform_op(op, left, right):
-      if op == "*":
-        return left * right
-      elif op == "+":
-        return left + right
-      else:
-        raise ValueError("Invalid operator")
+      match op:
+        case "*":
+          return left * right
+        case "+":
+          return left + right
+        case "||":
+          return int(str(left) + str(right))
+        case "_":
+          raise ValueError("Invalid operator")
 
-    for v in itertools.product(["*", "+"], repeat=len(values) - 1):
-
+    for v in itertools.product(ops, repeat=len(values) - 1):
       s = perform_op(v[0], values[0], values[1])
+
       idx = 1
       for j in range(2, len(values)):
         s = perform_op(v[idx], s, values[j])
@@ -38,15 +40,17 @@ async def part1():
       if s == value:
         res += value
         break
+      
+  return res
 
+async def part1():
+  res = await solve(["*", "+"])
   print(res)
 
 
-
 async def part2():
-  async for line in read_file("day3input"):
-    pass
-
+  res = await solve(["*", "+", "||"])
+  print(res)
 
 if __name__ == "__main__":
     asyncio.run(part1())
