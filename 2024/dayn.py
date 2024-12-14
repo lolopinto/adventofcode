@@ -4,7 +4,7 @@ import asyncio
 from collections import defaultdict
 from dataclasses import dataclass
 import re
-# from grid import Grid
+from grid import Grid
 import itertools
 import enum
 import math

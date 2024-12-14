@@ -100,6 +100,14 @@ class Grid(Generic[T]):
   def visited(self, r: int, c: int) -> bool:
     return self.data[r][c].visited
   
+  def count_visited(self) -> int:
+    count = 0
+    for r in range(self.height):
+      for c in range(self.width):
+        if self.visited(r, c):
+          count += 1
+    return count
+  
   def find(self, v: Any) -> tuple[int, int] | None:
     for r in range(self.height):
       for c in range(self.width):
