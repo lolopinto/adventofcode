@@ -47,8 +47,8 @@ async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], 
         next_empty = True
 
 
-def ints(s: str)-> list[int]:
-  return [int(v) for v in s.split()]
+def ints(s: str, delimiter : str | None = None)-> list[int]:
+  return [int(v) for v in (s.split(delimiter) if delimiter is not None else s.split())]
 
 def ints_list(s: list[str])-> list[int]:
   return [int(v) for v in s]
