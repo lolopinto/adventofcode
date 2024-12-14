@@ -50,6 +50,10 @@ async def read_file_chunks(file: str, length: int) -> AsyncGenerator[list[str], 
 def ints(s: str)-> list[int]:
   return [int(v) for v in s.split()]
 
+def ints_list(s: list[str])-> list[int]:
+  return [int(v) for v in s]
+
+
 # TODO grid implementation
 
 # TODO graph implementation
