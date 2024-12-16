@@ -115,6 +115,13 @@ class Grid(Generic[T]):
           return (r, c)
     return None
 
+  def count(self, v: Any) -> int:
+    count = 0
+    for r, c in self.walk():
+      if self.get_value(r, c) == v:
+        count += 1
+    return count
+
   def current_lines(self) -> list[str]:
     result = []
     for r in range(self.height):
