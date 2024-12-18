@@ -64,22 +64,8 @@ def perform_operator(registers, opcode, operand) -> dict:
   return {}
     
 
-async def part1():
-  groups = [group async for group in read_file_groups("day17input")]
-
-  assert len(groups) == 2
-  
-  registers = {}
-  
-  for register in groups[0]:
-    m = re.search("Register (.): (.+)", register)
-    assert m is not None
-    registers[m.group(1)] = int(m.group(2))
-
-  assert len(registers) == 3
-  assert len(groups[1]) == 1
-  
-  inputs = ints(groups[1][0].split(": ")[1], ",")
+def run_program(registers, program):
+  inputs = ints(program, ",")
 
   i = 0  
   
@@ -99,14 +85,47 @@ async def part1():
     if "outputs" in result:
       outputs.append(str(result["outputs"]))
       
-  print(",".join(outputs))
+  return ",".join(outputs)
 
+async def load():
+  groups = [group async for group in read_file_groups("day17input")]
+
+  assert len(groups) == 2
   
+  registers = {}
+  
+  for register in groups[0]:
+    m = re.search("Register (.): (.+)", register)
+    assert m is not None
+    registers[m.group(1)] = int(m.group(2))
 
+  assert len(registers) == 3
+  assert len(groups[1]) == 1
+  
+  program = groups[1][0]
+  program = program.split(": ")[1]
+  return registers, program
+
+async def part1():
+  registers, program = await load()
+  
+  print(run_program(registers, program))
 
 async def part2():
-  async for line in read_file("day3input"):
-    pass
+  registers, program = await load()
+
+  a_start = 0
+  while True:
+    current = registers.copy()
+    current["A"] = a_start
+    
+    if program == run_program(current, program):
+      break
+    a_start += 1
+    if a_start % 1_000_000 == 0:
+      print(a_start)
+    
+  print(a_start)
 
 
 if __name__ == "__main__":
