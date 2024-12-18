@@ -11,19 +11,20 @@ import math
 
 EXAMPLE = (7, 12)
 PROD = (71, 1024)
-async def part1():
+
+def get_consts():
   if True:
-    length = PROD[0]
-    steps = PROD[1]
+    return PROD
   else:
-    length = EXAMPLE[0]
-    steps = EXAMPLE[1]
+    return EXAMPLE
+  
+async def part1():
+  length, steps = get_consts()
   
   g = Grid.square_grid(length)
   i = 0
   async for line in read_file("day18input"):
     p = ints(line, ",")
-    print
     g.set(p[0], p[1], "#")
     
     i += 1
@@ -34,9 +35,23 @@ async def part1():
 
 
 async def part2():
-  async for line in read_file("day18input"):
-    pass
+  length, steps = get_consts()
+  
+  lines = [line async for line in read_file("day18input")]
 
+  for i in range(steps, len(lines)):
+    g = Grid.square_grid(length)
+    
+    for j in range(i):
+      p = ints(lines[j], ",")
+      g.set(p[0], p[1], "#")
+
+    # 18.93s for this
+    try:
+      g.dijkstra2((0, 0), (g.width - 1, g.height - 1), "#")
+    except AssertionError:
+      print(lines[j])
+      break
 
 if __name__ == "__main__":
     asyncio.run(part1())
