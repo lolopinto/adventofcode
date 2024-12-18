@@ -12,6 +12,9 @@ import math
 EXAMPLE = (7, 12)
 PROD = (71, 1024)
 
+def visitable(g: Grid, curr: tuple[int, int], p: tuple[int, int]) -> bool:
+  return g.get_value(p[0], p[1]) != "#"
+
 def get_consts():
   if True:
     return PROD
@@ -31,7 +34,7 @@ async def part1():
     if i == steps:
       break
     
-  print(g.dijkstra2((0, 0), (g.width - 1, g.height - 1), "#"))
+  print(g.dijkstra2((0, 0), (g.width - 1, g.height - 1), visitable))
 
 
 async def part2():
@@ -48,7 +51,7 @@ async def part2():
 
     # 18.93s for this
     try:
-      g.dijkstra2((0, 0), (g.width - 1, g.height - 1), "#")
+      g.dijkstra2((0, 0), (g.width - 1, g.height - 1), visitable)
     except AssertionError:
       print(lines[j])
       break

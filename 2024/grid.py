@@ -283,7 +283,7 @@ class Grid(Generic[T]):
     return -1
   
   # translating 2023 day 15  
-  def dijkstra2(self, start: tuple[int, int], end: tuple[int, int], blocked_val: Any | None = None) -> int:
+  def dijkstra2(self, start: tuple[int, int], end: tuple[int, int], visitable: Callable[[Grid, tuple[int, int], tuple[int, int], bool]] | None) -> int:
     q = set()
     mins = defaultdict(int)
     unvisitedmins = set()
@@ -298,8 +298,9 @@ class Grid(Generic[T]):
       curr_val = mins[curr]
       
       for n in self.neighbors(curr[0], curr[1]):
-        if blocked_val is not None and self.get_value(n[0], n[1]) == blocked_val:
-          continue
+        if visitable is not None: 
+          if not visitable(self, curr, n):
+            continue
         if self.visited(n[0], n[1]):
           continue
         
