@@ -338,6 +338,24 @@ class Grid(Generic[T]):
 
     return mins[end]
       
+  def all_paths(self, start: tuple[int, int], end: tuple[int, int], visitable: Callable[[Grid, tuple[int, int], tuple[int, int], bool]] | None) -> list[list[tuple[int, int]]]:
+    paths = []
+    q = []
+    q.append([start])
+    while len(q) > 0:
+      curr = q.pop(0)
+      last = curr[-1]
+      if last == end:
+        paths.append(curr)
+      for n in self.neighbors(last[0], last[1]):
+        if visitable is not None:
+          if not visitable(self, last, n):
+            continue
+        if n not in curr:
+          new_path = curr.copy()
+          new_path.append(n)
+          q.append(new_path)
+    return paths
       
 # TODO lines to get the lines
 # TODO rotate
