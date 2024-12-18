@@ -7,6 +7,8 @@ async def read_file(file: str) -> AsyncGenerator[str, None]:
     async for line in f:
       yield line.strip()
       
+async def read_file_lines(file: str) -> list[str]:
+  return [line async for line in read_file(file)]
 
 async def read_file_groups(file: str) -> AsyncGenerator[list[str], None]:
   l = []
