@@ -8,6 +8,8 @@ from grid import Grid
 import itertools
 import enum
 import math
+from functools import cache
+
 
 def is_possible(towels: list[str], line: str) -> bool:
   if len(line) == 0:
@@ -19,6 +21,19 @@ def is_possible(towels: list[str], line: str) -> bool:
         return True
 
   return False
+
+
+@cache
+def is_possible_count(towels: tuple[str], line: str) -> int:
+  if len(line) == 0:
+    return 1
+
+  ret = 0
+  for towel in towels:
+    if line.startswith(towel):
+      ret += is_possible_count(towels, line[len(towel):])
+
+  return ret
 
 async def part1():
   groups = await get_file_groups("day19input")
@@ -36,8 +51,17 @@ async def part1():
 
 
 async def part2():
-  async for line in read_file("day3input"):
-    pass
+  groups = await get_file_groups("day19input")
+  assert len(groups) == 2
+  
+  assert len(groups[0]) == 1
+  towels = groups[0][0].split(", ")
+  
+  ct = 0
+  for line in groups[1]:
+    ct += is_possible_count(tuple(towels), line)
+
+  print(ct)
 
 
 if __name__ == "__main__":
